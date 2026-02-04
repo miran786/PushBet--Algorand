@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { QrReader } from "react-qr-reader";
 import { FaQrcode, FaBoxOpen, FaCheckCircle, FaSpinner } from "react-icons/fa";
-import { PeraWalletConnect } from "@perawallet/connect";
+import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
 
-const peraWallet = new PeraWalletConnect();
-
 export function AssetArena() {
+    const { activeAccount, signTransactions } = useWallet();
     const [scanResult, setScanResult] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
     const [borrowStatus, setBorrowStatus] = useState<"idle" | "scanning" | "confirming" | "success">("idle");
@@ -21,19 +20,16 @@ export function AssetArena() {
 
     const initiateBorrow = async () => {
         if (!scanResult) return;
+
+        if (!activeAccount) {
+            alert("Please connect your wallet first (top right)");
+            return;
+        }
+
         setProcessing(true);
 
         try {
-            // 1. Connect Wallet if not connected (Simple check)
-            const accounts = await peraWallet.reconnectSession();
-            let senderAddress = accounts[0];
-
-            if (!senderAddress) {
-                const newAccounts = await peraWallet.connect();
-                senderAddress = newAccounts[0];
-            }
-
-            if (!senderAddress) throw new Error("Wallet not connected");
+            const senderAddress = activeAccount.address;
 
             // 2. Construct Transaction (5 ALGO Deposit)
             const algodToken = '';
@@ -55,12 +51,23 @@ export function AssetArena() {
                 note: new TextEncoder().encode(`Borrow Item: ${scanResult}`)
             } as any);
 
-            // 3. Sign Group (Single txn here)
-            const singleTxnGroups = [{ txn: txn, signers: [senderAddress] }];
-            const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
+            // 3. Sign Group (Single txn here) using useWallet hook
+            // useWallet requires encoding the txn to base64 or passing the object. 
+            // The library expects an array of byte arrays (Uint8Array) for signing usually, 
+            // but the `signTransactions` helper takes specific encoded objects.
+            // Actually, `signTransactions` in @txnlab/use-wallet takes `txn: string` (in base64) or `txn: Transaction`.
+            // Let's pass the encoded transaction.
+
+            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+
+            // The hook expects an array of SendTransactionFrom (which describes the signers) or just encoded txns?
+            // Checking documentation pattern: usually signTransactions([ { txn: encoded... } ])
+
+            const signedTxns = await signTransactions([encodedTxn]);
 
             // 4. Submit
-            const response = await algodClient.sendRawTransaction(signedTxn).do();
+            // The hook returns the signed blobs (Uint8Array[]). We send them.
+            const response = await algodClient.sendRawTransaction(signedTxns).do();
             const txid = response.txid;
             setTxId(txid);
 

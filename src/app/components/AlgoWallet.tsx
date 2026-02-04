@@ -1,64 +1,55 @@
-import { PeraWalletConnect } from "@perawallet/connect";
-import { useEffect, useState } from "react";
-
-const peraWallet = new PeraWalletConnect();
+import { useWallet } from "@txnlab/use-wallet-react";
 
 export default function AlgoWallet() {
-    const [accountAddress, setAccountAddress] = useState<string | null>(null);
-    const isConnectedToPeraWallet = !!accountAddress;
+    const { wallets, activeAccount } = useWallet();
 
-    useEffect(() => {
-        // Reconnect to the session when the component is mounted
-        peraWallet.reconnectSession().then((accounts) => {
-            peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+    const isConnected = !!activeAccount;
 
-            if (accounts.length) {
-                setAccountAddress(accounts[0]);
-            }
-        });
-    }, []);
+    const handleConnect = async (walletId: string) => {
+        try {
+            const wallet = wallets?.find((w) => w.id === walletId);
+            await wallet?.connect();
+        } catch (error) {
+            console.error("Connect error:", error);
+        }
+    };
 
-    function handleConnectWalletClick() {
-        peraWallet
-            .connect()
-            .then((newAccounts) => {
-                peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-                setAccountAddress(newAccounts[0]);
-            })
-            .catch((error) => {
-                console.error("Wallet Connect Error:", error);
-                if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
-                    console.log(error);
-                }
-            });
-    }
-
-    function handleDisconnectWalletClick() {
-        peraWallet.disconnect();
-        setAccountAddress(null);
-    }
+    const handleDisconnect = async () => {
+        try {
+            const wallet = wallets?.find(w => w.isActive);
+            wallet?.disconnect();
+        } catch (error) {
+            console.error("Disconnect error:", error);
+        }
+    };
 
     return (
         <div className="flex gap-4 items-center">
-            {isConnectedToPeraWallet ? (
+            {isConnected ? (
                 <div className="flex items-center gap-2">
                     <span className="text-neon-cyan font-mono text-sm border border-neon-cyan/30 px-3 py-1 rounded bg-black/50">
-                        {accountAddress.slice(0, 6)}...{accountAddress.slice(-4)}
+                        {activeAccount?.address.slice(0, 6)}...{activeAccount?.address.slice(-4)}
                     </span>
                     <button
-                        onClick={handleDisconnectWalletClick}
+                        onClick={handleDisconnect}
                         className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/50 rounded transition-all uppercase tracking-wider text-xs font-bold font-['Rajdhani']"
                     >
                         Disconnect
                     </button>
                 </div>
             ) : (
-                <button
-                    onClick={handleConnectWalletClick}
-                    className="px-6 py-2 bg-[var(--algorand-cyan)]/10 hover:bg-[var(--algorand-cyan)]/20 text-[var(--algorand-cyan)] border border-[var(--algorand-cyan)] rounded shadow-[0_0_15px_rgba(0,212,255,0.3)] hover:shadow-[0_0_25px_rgba(0,212,255,0.5)] transition-all uppercase tracking-wider text-sm font-bold font-['Rajdhani']"
-                >
-                    Connect Pera
-                </button>
+                <div className="flex gap-2">
+                    {wallets?.map((wallet) => (
+                        <button
+                            key={wallet.id}
+                            onClick={() => handleConnect(wallet.id)}
+                            className="px-4 py-2 bg-[var(--algorand-cyan)]/10 hover:bg-[var(--algorand-cyan)]/20 text-[var(--algorand-cyan)] border border-[var(--algorand-cyan)] rounded shadow-[0_0_15px_rgba(0,212,255,0.3)] transition-all uppercase tracking-wider text-xs font-bold font-['Rajdhani'] flex items-center gap-2"
+                        >
+                            <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-4 h-4" />
+                            {wallet.metadata.name}
+                        </button>
+                    ))}
+                </div>
             )}
         </div>
     );
