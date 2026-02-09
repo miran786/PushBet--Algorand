@@ -23,7 +23,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@mediapipe/pose': path.resolve(__dirname, 'src/shims/mediapipe-pose.js'),
     },
   },
-  assetsInclude: ['**/*.svg', '**/*.csv'],
+  assetsInclude: ['**/*.svg', '**/*.csv', '**/*.wasm', '**/*.data', '**/*.tflite', '**/*.binarypb'],
 })

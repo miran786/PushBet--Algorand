@@ -40,15 +40,16 @@ export function AssetArena() {
             const params = await algodClient.getTransactionParams().do();
 
             // Send to Admin/App address (Placeholder)
-            const receiverAddress = "YOUR_ADMIN_WALLET_ADDRESS_HERE"; // TODO: Fetch from config
+            // Send to Admin/App address (Placeholder)
+            // const receiverAddress = ... (Unused variable fix)
             const amount = 5000000; // 5 ALGO in microAlgos
 
             const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 sender: senderAddress,
-                to: receiverAddress,
+                receiver: "VI224H6V224H6V224H6V224H6V224H6V224H6V224H6V224H6V224H6V22", // App Address Placeholder
                 amount: amount,
                 suggestedParams: params,
-                note: new TextEncoder().encode(`Borrow Item: ${scanResult}`)
+                note: new TextEncoder().encode(`AppCall: Deposit | Item: ${scanResult}`)
             } as any);
 
             // 3. Sign Group (Single txn here) using useWallet hook
@@ -67,8 +68,9 @@ export function AssetArena() {
 
             // 4. Submit
             // The hook returns the signed blobs (Uint8Array[]). We send them.
-            const response = await algodClient.sendRawTransaction(signedTxns).do();
-            const txid = response.txid;
+            // Algosdk v2 sendRawTransaction takes Uint8Array | Uint8Array[]
+            const response = (await algodClient.sendRawTransaction(signedTxns as any).do()) as any;
+            const txid = response.txId;
             setTxId(txid);
 
             // 5. Notify Backend
