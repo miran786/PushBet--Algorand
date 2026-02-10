@@ -2,7 +2,7 @@
 
 :root {
   --font-size: 16px;
-  
+
   /* PushBet Custom Colors - Cyberpunk Theme */
   --algorand-cyan: #00D4FF;
   --electric-volt: #CCFF00;
@@ -10,7 +10,10 @@
   --matte-black: #18181B;
   --neon-cyan-glow: rgba(0, 212, 255, 0.5);
   --neon-green-glow: rgba(204, 255, 0, 0.5);
-  
+  --holographic-silver: #e2e8f0;
+  --neon-purple: #b026ff;
+  --plasma-pink: #ff006e;
+
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;

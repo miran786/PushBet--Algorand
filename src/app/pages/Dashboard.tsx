@@ -43,9 +43,7 @@ export function Dashboard() {
                             <div className="p-3 rounded-xl bg-[var(--neon-purple)]/20 text-[var(--neon-purple)]">
                                 <FaBroom size={32} />
                             </div>
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                COMING SOON
-                            </span>
+
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[var(--neon-purple)] transition-colors">
                             Civic Sense
@@ -64,9 +62,7 @@ export function Dashboard() {
                             <div className="p-3 rounded-xl bg-[var(--electric-volt)]/20 text-[var(--electric-volt)]">
                                 <FaHandHoldingHeart size={32} />
                             </div>
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                COMING SOON
-                            </span>
+
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[var(--electric-volt)] transition-colors">
                             Asset Lending
@@ -85,9 +81,7 @@ export function Dashboard() {
                             <div className="p-3 rounded-xl bg-[var(--plasma-pink)]/20 text-[var(--plasma-pink)]">
                                 <FaBus size={32} />
                             </div>
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                COMING SOON
-                            </span>
+
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[var(--plasma-pink)] transition-colors">
                             Commute Pool
