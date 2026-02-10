@@ -56,6 +56,35 @@ Most campus apps are isolated silos. CVP unifies them into a single **On-Chain I
 
 ---
 
+## 🔥 Innovations (Why We Win)
+
+### 1. **Zero-Collateral DeFi (Based on AI Reputation)**
+We solve the "Over-collateralization" problem in DeFi. Instead of locking assets, students stake their **Reputation**.
+*   **Tech:** Our Lending Contract reads the **Local State (Trust Score)** from the Trust Protocol.
+*   **Logic:** `If Trust_Score > 50: Collateral = 0`. This is true **Identity-Based DeFi**.
+
+### 2. **"Proof of Burn" Tokenomics**
+Turn sweat into a deflationary asset.
+*   **Mechanism:** AI verifies pushups -> Mints `$BURN` tokens.
+*   **Utility:** Tokens must be *burned* to redeem campus rewards, creating a circular economy.
+
+### 3. **Atomic Marketplace (Zero-Risk Trading)**
+A trustless P2P exchange for textbooks and equipment.
+*   **Tech:** Uses **Algorand Atomic Transfers**.
+*   **Innovation:** The Payment and Asset Transfer happen in the *same* atomic group. It is mathematically impossible to get scammed.
+
+### 4. **Cross-Chain Identity (State Proofs)**
+Your reputation travels with you.
+*   **Tech:** **Algorand State Proofs (ASP)**.
+*   **Future:** Export your high Trust Score as a cryptographic proof to get loans on Ethereum or Solana.
+
+### 5. **Hyper-Local Crowd-Staking (The Canteen DAO)**
+Allow students to crowd-fund campus infrastructure directly.
+*   **Scenario:** "We want a new Coffee Machine." Students stake ALGO; funds stream to vendor only when target is met.
+*   **Algorand Feature:** **LogicSigs (Smart Signatures)**. The machine has its own wallet that only dispenses coffee to NFT contributors.
+
+---
+
 ## 💎 Key Features & Tracks
 
 ### 🧘 Track 2: AI & Automation
