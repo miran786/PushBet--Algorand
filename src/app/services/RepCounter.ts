@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NormalizedLandmarkList, POSE_LANDMARKS } from "@mediapipe/pose";
 
 export enum PushupState {

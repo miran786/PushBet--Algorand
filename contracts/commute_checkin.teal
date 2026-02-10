@@ -1,0 +1,186 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l22
+txn OnCompletion
+int OptIn
+==
+bnz main_l21
+txn OnCompletion
+int CloseOut
+==
+bnz main_l20
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l19
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l18
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "register_driver"
+==
+bnz main_l17
+txna ApplicationArgs 0
+byte "register_rider"
+==
+bnz main_l16
+txna ApplicationArgs 0
+byte "start_trip"
+==
+bnz main_l15
+txna ApplicationArgs 0
+byte "end_trip"
+==
+bnz main_l14
+txna ApplicationArgs 0
+byte "cancel_trip"
+==
+bnz main_l13
+err
+main_l13:
+txn Sender
+byte "trip_active"
+app_local_get
+int 1
+==
+assert
+itxn_begin
+int pay
+itxn_field TypeEnum
+txn Sender
+itxn_field Receiver
+txn Sender
+byte "collateral"
+app_local_get
+itxn_field Amount
+int 0
+itxn_field Fee
+itxn_submit
+txn Sender
+byte "trip_active"
+int 0
+app_local_put
+txn Sender
+byte "collateral"
+int 0
+app_local_put
+int 1
+return
+main_l14:
+txn Sender
+byte "trip_active"
+app_local_get
+int 1
+==
+assert
+txn Sender
+byte "collateral"
+app_local_get
+int 0
+>
+assert
+itxn_begin
+int pay
+itxn_field TypeEnum
+txna ApplicationArgs 1
+itxn_field Receiver
+txn Sender
+byte "collateral"
+app_local_get
+itxn_field Amount
+int 0
+itxn_field Fee
+itxn_submit
+txn Sender
+byte "trip_active"
+int 0
+app_local_put
+txn Sender
+byte "collateral"
+int 0
+app_local_put
+int 1
+return
+main_l15:
+global GroupSize
+int 2
+==
+assert
+gtxn 0 TypeEnum
+int pay
+==
+assert
+gtxn 0 Receiver
+global CurrentApplicationAddress
+==
+assert
+gtxn 0 Amount
+int 0
+>
+assert
+txn Sender
+byte "role"
+app_local_get
+byte "rider"
+==
+assert
+txn Sender
+byte "trip_active"
+int 1
+app_local_put
+txn Sender
+byte "collateral"
+gtxn 0 Amount
+app_local_put
+int 1
+return
+main_l16:
+txn Sender
+byte "role"
+byte "rider"
+app_local_put
+int 1
+return
+main_l17:
+txn Sender
+byte "role"
+byte "driver"
+app_local_put
+int 1
+return
+main_l18:
+int 1
+return
+main_l19:
+int 1
+return
+main_l20:
+int 1
+return
+main_l21:
+txn Sender
+byte "role"
+byte "none"
+app_local_put
+txn Sender
+byte "trip_active"
+int 0
+app_local_put
+txn Sender
+byte "collateral"
+int 0
+app_local_put
+int 1
+return
+main_l22:
+int 1
+return

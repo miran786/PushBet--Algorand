@@ -1,0 +1,146 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l21
+txn OnCompletion
+int OptIn
+==
+bnz main_l20
+txn OnCompletion
+int CloseOut
+==
+bnz main_l19
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l18
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l17
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "borrow"
+==
+bnz main_l13
+txna ApplicationArgs 0
+byte "return"
+==
+bnz main_l10
+err
+main_l10:
+txn Sender
+global CreatorAddress
+==
+assert
+txna ApplicationArgs 1
+byte "item_id"
+app_local_get
+byte "none"
+!=
+assert
+txna ApplicationArgs 1
+byte "collateral"
+app_local_get
+int 0
+>
+bnz main_l12
+main_l11:
+txna ApplicationArgs 1
+byte "item_id"
+byte "none"
+app_local_put
+txna ApplicationArgs 1
+byte "collateral"
+int 0
+app_local_put
+txna ApplicationArgs 1
+byte "borrow_time"
+int 0
+app_local_put
+int 1
+return
+main_l12:
+itxn_begin
+int pay
+itxn_field TypeEnum
+txna ApplicationArgs 1
+itxn_field Receiver
+txna ApplicationArgs 1
+byte "collateral"
+app_local_get
+itxn_field Amount
+int 0
+itxn_field Fee
+itxn_submit
+b main_l11
+main_l13:
+txn Sender
+byte "item_id"
+app_local_get
+byte "none"
+==
+assert
+txn Sender
+byte "item_id"
+txna ApplicationArgs 1
+app_local_put
+txn Sender
+byte "collateral"
+global GroupSize
+int 2
+==
+gtxn 0 TypeEnum
+int pay
+==
+&&
+gtxn 0 Receiver
+global CurrentApplicationAddress
+==
+&&
+bnz main_l16
+int 0
+main_l15:
+app_local_put
+txn Sender
+byte "borrow_time"
+global LatestTimestamp
+app_local_put
+int 1
+return
+main_l16:
+gtxn 0 Amount
+b main_l15
+main_l17:
+int 1
+return
+main_l18:
+int 1
+return
+main_l19:
+int 1
+return
+main_l20:
+txn Sender
+byte "item_id"
+byte "none"
+app_local_put
+txn Sender
+byte "collateral"
+int 0
+app_local_put
+txn Sender
+byte "borrow_time"
+int 0
+app_local_put
+int 1
+return
+main_l21:
+int 1
+return

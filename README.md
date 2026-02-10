@@ -44,7 +44,16 @@ cd server
 npm install
 ```
 
-### 2. Configure Environment
+### 2. Start Database (MongoDB)
+**Option A: Docker (Recommended)**
+```powershell
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+```
+
+**Option B: Local Install**
+Ensure MongoDB service is running on port 27017.
+
+### 3. Configure Environment
 Create `server/.env`:
 ```
 MONGO_URI=mongodb://localhost:27017/miran_db
@@ -53,7 +62,7 @@ REFEREE_MNEMONIC="YOUR_ALGORAND_WALLET_MNEMONIC"
 ALGORAND_APP_ID=0
 ```
 
-### 3. Run Application
+### 4. Run Application
 ```bash
 # Terminal 1: Client
 npm run dev

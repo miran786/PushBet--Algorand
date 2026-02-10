@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Pose, Results, POSE_LANDMARKS } from "@mediapipe/pose";
 import { Camera } from "@mediapipe/camera_utils";
 

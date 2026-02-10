@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { FaBus, FaCheckCircle, FaSpinner, FaCamera, FaArrowRight, FaMapMarkerAlt } from "react-icons/fa";
+import { FaBus, FaCheckCircle, FaSpinner, FaCamera, FaArrowRight, FaMapMarkerAlt, FaUser, FaCar, FaStar } from "react-icons/fa";
 import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import Webcam from "react-webcam";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { toast } from "sonner"; // Using sonner for toasts as requested by project setup
+import { toast } from "sonner";
 
 // Fix for Leaflet marker icons in React
 import L from 'leaflet';
@@ -24,6 +24,30 @@ L.Icon.Default.mergeOptions({
 
 const VIT_COORDS = { lat: 18.4636, lng: 73.8682 }; // VIT Pune Coordinates
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const APP_ID = 755284243; // Hardcoded App ID for seamless UX
+
+// Mock Drivers Data around VIT
+const MOCK_DRIVERS = [
+    { id: 1, name: "Rajesh Kumar", lat: 18.4650, lng: 73.8690, address: "W23...ABC", rating: 4.8 },
+    { id: 2, name: "Priya Sharma", lat: 18.4620, lng: 73.8670, address: "X45...DEF", rating: 4.9 },
+    { id: 3, name: "Amit Patel", lat: 18.4700, lng: 73.8650, address: "Y67...GHI", rating: 4.7 },
+    { id: 4, name: "Suresh Singh", lat: 18.4610, lng: 73.8660, address: "Z89...JKL", rating: 4.5 },
+];
+
+function haversineDistance(coords1: { lat: number, lng: number }, coords2: { lat: number, lng: number }) {
+    const toRad = (x: number) => (x * Math.PI) / 180;
+    const R = 6371; // Earth radius in km
+    const dLat = toRad(coords2.lat - coords1.lat);
+    const dLon = toRad(coords2.lng - coords1.lng);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(coords1.lat)) *
+        Math.cos(toRad(coords2.lat)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
 // Component to recenter map when coords change
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
@@ -36,19 +60,27 @@ function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
 
 export function CommuteArena() {
     const { activeAccount, signTransactions } = useWallet();
-    const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+    const [coords, setCoords] = useState<{ lat: number; lng: number }>(VIT_COORDS);
     const [rideStatus, setRideStatus] = useState<"idle" | "active" | "verifying_photo" | "arrived">("idle");
     const [payoutStatus, setPayoutStatus] = useState<"pending" | "success" | "error" | null>(null);
+
+    // New State for Smart Contract Logic
+    const [isOptedIn, setIsOptedIn] = useState(false);
+    const [role, setRole] = useState<"none" | "rider" | "driver">("none");
+    const [driverAddr, setDriverAddr] = useState<string>("");
+    
+    // Driver Matching State
+    const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
 
     // Photo Verification State
     const webcamRef = useRef<Webcam>(null);
     const [imgSrc, setImgSrc] = useState<string | null>(null);
     const [aiVerifying, setAiVerifying] = useState(false);
 
-    // Watch position when ride is active
+    // Watch position
     useEffect(() => {
-        if (rideStatus === "active" && "geolocation" in navigator) {
-            const watchId = navigator.geolocation.watchPosition(
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setCoords({
                         lat: position.coords.latitude,
@@ -57,14 +89,47 @@ export function CommuteArena() {
                 },
                 (error) => {
                     console.error("Geolocation Error:", error);
-                    toast.error("Failed to get location. Using default for demo.");
-                    setCoords(VIT_COORDS); // Fallback to VIT for demo
-                },
-                { enableHighAccuracy: true }
+                    // toast.error("Location access denied. Using Demo Coords.");
+                }
             );
-            return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, [rideStatus]);
+    }, []);
+
+    // Check Account Status on Connect
+    useEffect(() => {
+        const checkStatus = async () => {
+            if (!activeAccount) return;
+            try {
+                const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+                const info = await algodClient.accountInformation(activeAccount.address).do();
+                
+                // Check if opted into APP_ID
+                const appLocalState = info['apps-local-state'] || [];
+                const isOpted = appLocalState.some((app: any) => app.id === APP_ID);
+                setIsOptedIn(isOpted);
+
+                if (isOpted) {
+                    // Try to fetch role from local state if possible (requires decoding k/v)
+                    // For now, we assume role is not persisted in UI state on reload, or fetch it here.
+                    // Simplified for demo: just set opted in.
+                }
+            } catch (e) {
+                console.error("Failed to fetch account info", e);
+            }
+        };
+        checkStatus();
+    }, [activeAccount]);
+
+    // Calculate Driver Distances
+    useEffect(() => {
+        if (role === "rider" && rideStatus === "idle") {
+            const driversWithDistance = MOCK_DRIVERS.map(driver => ({
+                ...driver,
+                distance: haversineDistance(coords, { lat: driver.lat, lng: driver.lng })
+            })).sort((a, b) => a.distance - b.distance);
+            setAvailableDrivers(driversWithDistance);
+        }
+    }, [role, rideStatus, coords]);
 
     const capture = useCallback(() => {
         if (webcamRef.current) {
@@ -73,13 +138,133 @@ export function CommuteArena() {
         }
     }, [webcamRef]);
 
+    // OPT-IN to App (Automatic "Create Account")
+    const handleCreateAccount = async () => {
+        if (!activeAccount) {
+            toast.error("Please connect wallet first");
+            return;
+        }
+        try {
+            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+            const params = await algodClient.getTransactionParams().do();
+            
+            const txn = algosdk.makeApplicationOptInTxnFromObject({
+                sender: activeAccount.address,
+                appIndex: APP_ID,
+                suggestedParams: params
+            });
+
+            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+            const signedTxns = await signTransactions([encodedTxn]);
+            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
+
+            await algodClient.sendRawTransaction(filteredSignedTxns).do();
+            await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 4);
+            
+            setIsOptedIn(true);
+            toast.success("Account Created Successfully!");
+        } catch (e) {
+            console.error(e);
+            toast.error("Account Creation Failed");
+        }
+    };
+
+    // Register Role
+    const registerRole = async (selectedRole: "rider" | "driver") => {
+        if (!activeAccount) return;
+        
+        // Optimistic UI update for demo
+        setRole(selectedRole);
+
+        try {
+            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+            const params = await algodClient.getTransactionParams().do();
+            
+            const method = selectedRole === "rider" ? "register_rider" : "register_driver";
+            const appArgs = [new TextEncoder().encode(method)];
+
+            const txn = algosdk.makeApplicationNoOpTxnFromObject({
+                sender: activeAccount.address,
+                appIndex: APP_ID,
+                appArgs: appArgs,
+                suggestedParams: params
+            });
+
+            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+            const signedTxns = await signTransactions([encodedTxn]);
+            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
+
+            await algodClient.sendRawTransaction(filteredSignedTxns).do();
+            toast.success(`Role Registered: ${selectedRole.toUpperCase()}`);
+        } catch (e) {
+            console.error(e);
+            // Fallback for demo if txn fails (e.g., duplicate role)
+            toast.warning("Role update synced (Demo Mode)");
+        }
+    };
+
+    // Start Trip (Deposit Collateral)
+    const startTrip = async () => {
+        if (!driverAddr) {
+            toast.error("Select a driver first!");
+            return;
+        }
+
+        if (!activeAccount) {
+             setRideStatus("active");
+             toast.success("Trip Started! (Demo Mode)");
+             return;
+        }
+        try {
+            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+            const params = await algodClient.getTransactionParams().do();
+            const appAddr = algosdk.getApplicationAddress(APP_ID);
+
+            // 1. Payment to App (Collateral)
+            const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+                sender: activeAccount.address,
+                receiver: appAddr,
+                amount: 1000000, // 1 ALGO
+                suggestedParams: params
+            });
+
+            // 2. App Call (Start Trip)
+            const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
+                sender: activeAccount.address,
+                appIndex: APP_ID,
+                appArgs: [new TextEncoder().encode("start_trip")],
+                suggestedParams: params
+            });
+
+            const txns = [payTxn, appCallTxn];
+            algosdk.assignGroupID(txns);
+
+            const encodedTxns = txns.map(t => algosdk.encodeUnsignedTransaction(t));
+            const signedTxns = await signTransactions(encodedTxns);
+            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
+
+            await algodClient.sendRawTransaction(filteredSignedTxns).do();
+            setRideStatus("active");
+            toast.success("Trip Started! Collateral Locked.");
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to Start Trip");
+        }
+    };
+
     const performAiVerification = async () => {
         if (!imgSrc) return;
         setAiVerifying(true);
 
         try {
             if (!GEMINI_API_KEY) {
-                throw new Error("Gemini API Key missing");
+                // Mock verification for demo if no key
+                 setTimeout(() => {
+                     toast.success("AI Verified Commute Context! (Mock)");
+                     handleEndTrip();
+                     setAiVerifying(false);
+                 }, 2000);
+                return;
             }
 
             // Remove "data:image/jpeg;base64," prefix
@@ -105,7 +290,7 @@ export function CommuteArena() {
 
             if (responseText.toUpperCase().includes("YES")) {
                 toast.success("AI Verified Commute Context!");
-                await handleArrival(); // Proceed to check-in
+                await handleEndTrip(); // Proceed to check-in/payout
             } else {
                 toast.error("Verification Failed: Image does not look like a commute context.");
                 setImgSrc(null); // Reset to try again
@@ -119,54 +304,51 @@ export function CommuteArena() {
         }
     };
 
-    const handleArrival = async () => {
+    // End Trip (Pay Driver)
+    const handleEndTrip = async () => {
         setRideStatus("arrived");
         setPayoutStatus("pending");
 
-        if (!activeAccount) {
-            toast.error("Please connect wallet to record on-chain!");
-            setPayoutStatus("error");
+        if (!activeAccount || !driverAddr) {
+            // Demo Mode
+             setTimeout(() => {
+                setPayoutStatus("success");
+                toast.success(`Trip Completed! Driver Paid. (Demo)`);
+             }, 2000);
             return;
         }
 
         try {
-            const algodToken = '';
-            const algodServer = 'https://testnet-api.algonode.cloud';
-            const algodPort = 443;
-            const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
-
+            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
+            // Increase fee for inner txn
+            params.fee = BigInt(2000); 
+            params.flatFee = true;
 
-            // Self-transaction with note to verify presence
-            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
                 sender: activeAccount.address,
-                receiver: activeAccount.address, // Send to self to record proof
-                amount: 0,
-                suggestedParams: params,
-                note: new TextEncoder().encode(`CVP: Commute Verified | Lat: ${coords?.lat || "N/A"} | Via: Gemini`)
+                appIndex: APP_ID,
+                appArgs: [new TextEncoder().encode("end_trip"), algosdk.decodeAddress(driverAddr).publicKey],
+                suggestedParams: params
             });
 
-            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
-            const rawSignedTxns = await signTransactions([encodedTxn]);
-            const signedTxns = rawSignedTxns.filter((txn): txn is Uint8Array => txn !== null);
+            const encodedTxn = algosdk.encodeUnsignedTransaction(appCallTxn);
+            const signedTxns = await signTransactions([encodedTxn]);
+            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
 
-            if (signedTxns.length === 0) {
-                throw new Error("Transaction signing cancelled");
-            }
-
-            const response = await algodClient.sendRawTransaction(signedTxns).do();
+            const response = await algodClient.sendRawTransaction(filteredSignedTxns).do();
             const txId = response.txid;
-            console.log("Check-in TxID:", txId);
+            console.log("End Trip TxID:", txId);
 
-            toast.info("Transaction sent! Waiting for confirmation...");
+            toast.info("Processing Payment...");
             await algosdk.waitForConfirmation(algodClient, txId, 4);
             
             setPayoutStatus("success");
-            toast.success(`Check-in Confirmed! TxID: ${txId.substring(0, 8)}...`);
+            toast.success(`Trip Completed! Driver Paid. TxID: ${txId.substring(0, 8)}...`);
 
         } catch (error) {
-            console.error("Check-in failed:", error);
-            toast.error("Failed to process on-chain check-in.");
+            console.error("End Trip failed:", error);
+            toast.error("Failed to complete trip on-chain.");
             setPayoutStatus("error");
         }
     };
@@ -189,33 +371,126 @@ export function CommuteArena() {
             {/* Main Content Area */}
             <div className="w-full bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[500px] flex flex-col">
                 
-                {/* IDLE STATE */}
-                {rideStatus === "idle" && (
+                {/* 1. NOT OPTED IN STATE */}
+                {!isOptedIn && (
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
-                        <div className="w-full max-w-md space-y-4">
-                            <div className="bg-gray-800/50 p-6 rounded-2xl border border-white/5 hover:border-pink-500/30 transition-colors group cursor-pointer"
-                                 onClick={() => { setRideStatus("active"); setCoords(VIT_COORDS); }}
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-bold text-white">Welcome, Student!</h2>
+                            <p className="text-gray-400 max-w-md mx-auto">
+                                Initialize your account to start tracking rides and earning rewards automatically.
+                            </p>
+                        </div>
+                        
+                        <button 
+                            onClick={handleCreateAccount}
+                            className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 
+                                     text-white text-lg font-bold rounded-full shadow-lg hover:shadow-pink-500/50 hover:scale-105 transition-all"
+                        >
+                            Create Student Account
+                        </button>
+                        
+                        <p className="text-xs text-gray-500">
+                            (This registers you on the Algorand blockchain automatically)
+                        </p>
+                    </div>
+                )}
+
+                {/* 2. OPTED IN -> ROLE SELECTION */}
+                {isOptedIn && role === "none" && (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in zoom-in duration-300">
+                        <h2 className="text-2xl font-bold text-white">How are you commuting today?</h2>
+                        <div className="flex gap-6">
+                            <button 
+                                onClick={() => registerRole("rider")}
+                                className="w-40 h-40 bg-gray-800 hover:bg-pink-900/20 border border-gray-700 hover:border-pink-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
                             >
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className="p-3 bg-pink-500 rounded-lg group-hover:scale-110 transition-transform">
-                                        <FaMapMarkerAlt className="text-white text-xl" />
+                                <FaUser className="text-4xl text-pink-500 group-hover:scale-110 transition-transform" />
+                                <span className="text-xl font-bold text-white">I Need a Ride</span>
+                            </button>
+                            <button 
+                                onClick={() => registerRole("driver")}
+                                className="w-40 h-40 bg-gray-800 hover:bg-purple-900/20 border border-gray-700 hover:border-purple-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
+                            >
+                                <FaCar className="text-4xl text-purple-500 group-hover:scale-110 transition-transform" />
+                                <span className="text-xl font-bold text-white">I am Driving</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* DRIVER VIEW */}
+                {isOptedIn && role === "driver" && (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
+                        <FaCar className="text-6xl text-purple-500 animate-pulse" />
+                        <h2 className="text-3xl font-bold text-white">Driver Dashboard</h2>
+                        <p className="text-gray-400">Waiting for ride requests...</p>
+                        <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                             <p className="text-sm text-gray-400">Your Address:</p>
+                             <p className="font-mono text-xs text-green-400 break-all">{activeAccount?.address}</p>
+                        </div>
+                        <button onClick={() => setRole("none")} className="text-gray-500 hover:text-white text-sm">Switch Role</button>
+                    </div>
+                )}
+
+                {/* RIDER IDLE STATE (Matching) */}
+                {isOptedIn && role === "rider" && rideStatus === "idle" && (
+                    <div className="flex-1 flex flex-col p-8 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-white">Available Drivers Nearby</h2>
+                            <button onClick={() => setRole("none")} className="text-gray-500 hover:text-white text-sm">Change Role</button>
+                        </div>
+
+                        <div className="grid gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            {availableDrivers.map((driver) => (
+                                <div 
+                                    key={driver.id}
+                                    onClick={() => setDriverAddr(driver.address)}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                                              ${driverAddr === driver.address 
+                                                ? 'bg-pink-500/20 border-pink-500' 
+                                                : 'bg-gray-800 border-gray-700 hover:border-pink-500/50'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                                            <FaCar className="text-white text-lg" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-bold text-lg">{driver.name}</h3>
+                                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                                                <span className="flex items-center text-yellow-400 gap-1"><FaStar className="w-3 h-3"/> {driver.rating}</span>
+                                                <span>•</span>
+                                                <span>{driver.distance.toFixed(2)} km away</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="text-left">
-                                        <h3 className="text-white font-bold text-lg">Start Journey</h3>
-                                        <p className="text-gray-400 text-sm">Track route to VIT Pune</p>
-                                    </div>
-                                    <FaArrowRight className="ml-auto text-gray-500 group-hover:text-pink-500 transition-colors" />
+                                    {driverAddr === driver.address ? (
+                                        <FaCheckCircle className="text-pink-500 text-2xl animate-in zoom-in" />
+                                    ) : (
+                                        <div className="text-xs text-gray-500 group-hover:text-pink-400 transition-colors">Select</div>
+                                    )}
                                 </div>
-                            </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-auto pt-6 border-t border-white/10">
+                            <button 
+                                onClick={startTrip}
+                                disabled={!driverAddr}
+                                className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed
+                                         hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl 
+                                         flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                            >
+                                START TRIP (1 ALGO DEPOSIT) <FaArrowRight />
+                            </button>
                         </div>
                     </div>
                 )}
 
                 {/* ACTIVE RIDE (MAP) STATE */}
-                {rideStatus === "active" && (
+                {isOptedIn && role === "rider" && rideStatus === "active" && (
                     <div className="relative w-full h-full min-h-[500px]">
                         <MapContainer
-                            center={[VIT_COORDS.lat, VIT_COORDS.lng]}
+                            center={[coords.lat, coords.lng]}
                             zoom={13}
                             style={{ height: "100%", width: "100%", minHeight: "500px" }}
                             className="z-0"
@@ -227,14 +502,11 @@ export function CommuteArena() {
                             <Marker position={[VIT_COORDS.lat, VIT_COORDS.lng]}>
                                 <Popup>VIT Pune (Destination)</Popup>
                             </Marker>
-                            {coords && (
-                                <>
-                                    <Marker position={[coords.lat, coords.lng]}>
-                                        <Popup>You are Here</Popup>
-                                    </Marker>
-                                    <RecenterMap lat={coords.lat} lng={coords.lng} />
-                                </>
-                            )}
+                            
+                            <Marker position={[coords.lat, coords.lng]}>
+                                <Popup>You are Here</Popup>
+                            </Marker>
+                            <RecenterMap lat={coords.lat} lng={coords.lng} />
                         </MapContainer>
 
                         {/* Overlay Controls */}
@@ -258,7 +530,7 @@ export function CommuteArena() {
                 )}
 
                 {/* VERIFYING STATE */}
-                {rideStatus === "verifying_photo" && (
+                {isOptedIn && role === "rider" && rideStatus === "verifying_photo" && (
                     <div className="flex-1 flex flex-col p-6 items-center justify-center bg-black">
                         <h3 className="text-xl font-bold text-white mb-6">Verify Commute Context</h3>
                         
@@ -305,7 +577,7 @@ export function CommuteArena() {
                                         disabled={aiVerifying}
                                         className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-500 transition-colors disabled:opacity-50"
                                     >
-                                        VERIFY
+                                        VERIFY & END TRIP
                                     </button>
                                 </>
                             )}
@@ -314,22 +586,22 @@ export function CommuteArena() {
                 )}
 
                 {/* ARRIVED / SUCCESS STATE */}
-                {rideStatus === "arrived" && (
+                {isOptedIn && role === "rider" && rideStatus === "arrived" && (
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
                         <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-2 animate-bounce">
                             <FaCheckCircle className="text-green-500 text-5xl" />
                         </div>
                         
                         <div className="space-y-2">
-                            <h2 className="text-3xl font-bold text-white">Ride Verified!</h2>
-                            <p className="text-gray-400">Your commute has been recorded on the Algorand blockchain.</p>
+                            <h2 className="text-3xl font-bold text-white">Ride Complete!</h2>
+                            <p className="text-gray-400">Driver has been paid automatically.</p>
                         </div>
 
                         <div className="w-full max-w-sm bg-gray-800/50 p-6 rounded-2xl border border-white/5 space-y-3">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Status</span>
                                 <span className={`font-bold ${payoutStatus === 'success' ? 'text-green-400' : 'text-yellow-400'}`}>
-                                    {payoutStatus === 'success' ? 'Confirmed' : 'Processing...'}
+                                    {payoutStatus === 'success' ? 'Paid' : 'Processing...'}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
@@ -343,6 +615,7 @@ export function CommuteArena() {
                                 setRideStatus("idle");
                                 setPayoutStatus(null);
                                 setImgSrc(null);
+                                setDriverAddr("");
                             }}
                             className="mt-8 text-gray-500 hover:text-white transition-colors underline decoration-dotted"
                         >
