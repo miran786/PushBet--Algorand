@@ -1,41 +1,74 @@
-const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+// Generate JWT Token
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, username: user.username },
+    process.env.JWT_SECRET || "secret_key",
+    { expiresIn: "30d" }
+  );
+};
 
 exports.register = async (req, res) => {
-  const { username, email, password, walletAddress } = req.body;
+  const { username, email, password } = req.body;
   try {
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
-      walletAddress,
     });
     await newUser.save();
+
+    const token = generateToken(newUser);
+
     res
       .status(201)
-      .json({ message: "User registered successfully", user: newUser });
+      .json({ message: "User registered successfully", user: newUser, token });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
 exports.login = async (req, res) => {
-  const { email, password, walletAddress } = req.body;
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (
-      !user ||
-      !(await bcrypt.compare(password, user.password)) ||
-      user.walletAddress !== walletAddress
-    ) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
     }
-    res.status(200).json({ success: true, user });
+
+    const token = generateToken(user);
+    res.status(200).json({ success: true, user, token });
   } catch (error) {
     console.error("Error during login:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.linkWallet = async (req, res) => {
+  const { walletAddress } = req.body;
+  const userId = req.user.id; // From middleware
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.walletAddress = walletAddress;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Wallet linked successfully", user });
+  } catch (error) {
+    console.error("Error linking wallet:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

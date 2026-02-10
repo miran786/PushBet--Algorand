@@ -15,7 +15,6 @@ import {
   ExternalLink,
   Copy
 } from "lucide-react";
-import { ConnectWalletButton } from "../components/ConnectWalletButton";
 import { useState, useEffect } from "react";
 import algosdk from "algosdk";
 import { toast } from "sonner";
@@ -33,9 +32,9 @@ export function Admin() {
   // Stats (Mocked for now or derived)
   const stats = [
     { label: "House Balance", value: `${balance} ALGO`, icon: Wallet, color: "text-[var(--electric-volt)]" },
-    { label: "Total Staked", value: "1,245 ALGO", icon: ArrowUpRight, color: "text-[var(--algorand-cyan)]" },
-    { label: "Total Payouts", value: "850 ALGO", icon: ArrowDownLeft, color: "text-white" },
-    { label: "Net Profit", value: "395 ALGO", icon: Activity, color: "text-green-400" },
+    // { label: "Total Staked", value: "1,245 ALGO", icon: ArrowUpRight, color: "text-[var(--algorand-cyan)]" }, // Removed per request
+    // { label: "Total Payouts", value: "850 ALGO", icon: ArrowDownLeft, color: "text-white" }, // Removed per request
+    // { label: "Net Profit", value: "395 ALGO", icon: Activity, color: "text-green-400" }, // Removed per request
   ];
 
   // Fetch House Wallet Balance
@@ -96,8 +95,6 @@ export function Admin() {
             House Wallet Management Dashboard
           </p>
         </div>
-
-        <ConnectWalletButton />
       </div>
 
       {/* Stats Overview */}

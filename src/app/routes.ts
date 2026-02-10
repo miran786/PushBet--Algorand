@@ -13,6 +13,9 @@ import { ValidatorNode } from "./pages/ValidatorNode";
 import { Reputation } from "./pages/Reputation";
 import { Marketplace } from "./pages/Marketplace";
 import { Profile } from "./pages/Profile";
+import { InfraMarket } from "./pages/InfraMarket";
+import { Login } from "./pages/Login";
+import { Signup } from "./pages/Signup";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +23,8 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, Component: Dashboard },
+      { path: "login", Component: Login },
+      { path: "signup", Component: Signup },
       { path: "fitness", Component: Arena },
       { path: "civic", Component: CivicArena },
       { path: "asset", Component: AssetArena },
@@ -31,6 +36,7 @@ export const router = createBrowserRouter([
       { path: "validator", Component: ValidatorNode },
       { path: "reputation", Component: Reputation },
       { path: "marketplace", Component: Marketplace },
+      { path: "infrastructure", Component: InfraMarket },
       { path: "profile", Component: Profile },
     ],
   },

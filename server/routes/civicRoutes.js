@@ -1,3 +1,5 @@
+const express = require("express");
+const router = express.Router();
 const { verifyCleanliness, getPendingSubmissions, approveSubmission, rejectSubmission, getAssignedVerifications, submitVote } = require("../controllers/civicController");
 
 router.post("/verify-cleanliness", verifyCleanliness);

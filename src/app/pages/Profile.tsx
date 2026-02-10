@@ -31,12 +31,19 @@ export function Profile() {
     }, [activeAccount]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex flex-col items-center justify-start p-4 pt-10">
+            {/* Main Page Title */}
+            <h1 className="text-4xl font-black text-white mb-8 tracking-tighter">
+                MY <span className="text-[var(--algorand-cyan)]">NFT</span> BADGES
+            </h1>
+
             <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
                 
                 {/* LEFT: THE NFT CARD */}
                 <div className="flex flex-col items-center">
-                    <h2 className="text-xl font-bold text-gray-400 mb-6 uppercase tracking-widest">Your Campus ID</h2>
+                    <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--electric-volt)] to-[var(--algorand-cyan)] mb-6 uppercase tracking-widest">
+                        YOUR CVP NFT BADGE
+                    </h2>
                     
                     {/* 3D Flip Card Effect Container */}
                     <div className="group w-80 h-[480px] perspective-1000">

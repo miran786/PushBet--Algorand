@@ -1,83 +1,82 @@
 import { Trophy, TrendingUp, Zap, Award, Filter } from "lucide-react";
-import { ConnectWalletButton } from "../components/ConnectWalletButton";
 
 export function Leaderboard() {
   const topPlayers = [
-    { 
-      rank: 1, 
-      name: "CryptoAthlete", 
+    {
+      rank: 1,
+      name: "CryptoAthlete",
       avatar: "🏆",
-      totalReps: 2450, 
+      totalReps: 2450,
       winRate: 92,
       earnings: "5,240 ALGO",
       streak: 12,
       level: 45
     },
-    { 
-      rank: 2, 
-      name: "BlockchainBuff", 
+    {
+      rank: 2,
+      name: "BlockchainBuff",
       avatar: "💪",
-      totalReps: 2180, 
+      totalReps: 2180,
       winRate: 88,
       earnings: "4,820 ALGO",
       streak: 8,
       level: 42
     },
-    { 
-      rank: 3, 
-      name: "AlgoWarrior", 
+    {
+      rank: 3,
+      name: "AlgoWarrior",
       avatar: "⚡",
-      totalReps: 2050, 
+      totalReps: 2050,
       winRate: 85,
       earnings: "4,210 ALGO",
       streak: 15,
       level: 40
     },
-    { 
-      rank: 4, 
-      name: "FitnessFiend", 
+    {
+      rank: 4,
+      name: "FitnessFiend",
       avatar: "🔥",
-      totalReps: 1920, 
+      totalReps: 1920,
       winRate: 82,
       earnings: "3,890 ALGO",
       streak: 6,
       level: 38
     },
-    { 
-      rank: 5, 
-      name: "RepMaster", 
+    {
+      rank: 5,
+      name: "RepMaster",
       avatar: "💎",
-      totalReps: 1850, 
+      totalReps: 1850,
       winRate: 79,
       earnings: "3,520 ALGO",
       streak: 4,
       level: 36
     },
-    { 
-      rank: 6, 
-      name: "GymShark", 
+    {
+      rank: 6,
+      name: "GymShark",
       avatar: "🦈",
-      totalReps: 1720, 
+      totalReps: 1720,
       winRate: 76,
       earnings: "3,180 ALGO",
       streak: 3,
       level: 34
     },
-    { 
-      rank: 7, 
-      name: "FlexMachine", 
+    {
+      rank: 7,
+      name: "FlexMachine",
       avatar: "🤖",
-      totalReps: 1650, 
+      totalReps: 1650,
       winRate: 74,
       earnings: "2,940 ALGO",
       streak: 5,
       level: 32
     },
-    { 
-      rank: 8, 
-      name: "IronPusher", 
+    {
+      rank: 8,
+      name: "IronPusher",
       avatar: "🏋️",
-      totalReps: 1580, 
+      totalReps: 1580,
       winRate: 71,
       earnings: "2,650 ALGO",
       streak: 2,
@@ -105,8 +104,6 @@ export function Leaderboard() {
             Top performers in the PushBet arena
           </p>
         </div>
-
-        <ConnectWalletButton />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -119,9 +116,9 @@ export function Leaderboard() {
                 <button
                   key={cat.name}
                   className={`px-6 py-3 rounded-xl font-['Rajdhani'] font-semibold tracking-wider transition-all duration-300
-                            ${cat.active 
-                              ? 'bg-gradient-to-r from-[var(--algorand-cyan)]/20 to-[var(--electric-volt)]/20 border border-[var(--algorand-cyan)]/50 text-white'
-                              : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
+                            ${cat.active
+                      ? 'bg-gradient-to-r from-[var(--algorand-cyan)]/20 to-[var(--electric-volt)]/20 border border-[var(--algorand-cyan)]/50 text-white'
+                      : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
                 >
                   {cat.name}
                 </button>
@@ -139,7 +136,7 @@ export function Leaderboard() {
             <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                           shadow-2xl shadow-black/50 overflow-hidden mt-8">
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-              
+
               <div className="relative text-center">
                 <div className="text-5xl mb-3">{topPlayers[1].avatar}</div>
                 <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-gray-300 to-gray-500 
@@ -158,7 +155,7 @@ export function Leaderboard() {
                           border-2 border-[var(--algorand-cyan)]/50 rounded-2xl p-6 
                           shadow-2xl shadow-[var(--neon-cyan-glow)]/50 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-              
+
               <div className="relative text-center">
                 <div className="text-6xl mb-3">{topPlayers[0].avatar}</div>
                 <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[var(--electric-volt)] to-[var(--algorand-cyan)] 
@@ -177,7 +174,7 @@ export function Leaderboard() {
             <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                           shadow-2xl shadow-black/50 overflow-hidden mt-8">
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-              
+
               <div className="relative text-center">
                 <div className="text-5xl mb-3">{topPlayers[2].avatar}</div>
                 <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 
@@ -196,7 +193,7 @@ export function Leaderboard() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h2 className="font-['Exo_2'] font-bold text-xl tracking-wider text-[var(--algorand-cyan)] mb-6">
                 FULL RANKINGS
@@ -204,15 +201,15 @@ export function Leaderboard() {
 
               <div className="space-y-3">
                 {topPlayers.map((player) => (
-                  <div key={player.rank} 
-                       className="group flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5
+                  <div key={player.rank}
+                    className="group flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5
                                 hover:bg-white/10 hover:border-[var(--algorand-cyan)]/30
                                 transition-all duration-200 cursor-pointer">
                     {/* Rank */}
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-['Exo_2'] font-black text-xl
-                                   ${player.rank <= 3 
-                                     ? 'bg-gradient-to-br from-[var(--electric-volt)] to-[var(--algorand-cyan)] text-[var(--deep-charcoal)]'
-                                     : 'bg-white/10 text-white/60'}`}>
+                                   ${player.rank <= 3
+                        ? 'bg-gradient-to-br from-[var(--electric-volt)] to-[var(--algorand-cyan)] text-[var(--deep-charcoal)]'
+                        : 'bg-white/10 text-white/60'}`}>
                       {player.rank}
                     </div>
 
@@ -264,12 +261,12 @@ export function Leaderboard() {
                         border border-[var(--electric-volt)]/30 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h3 className="font-['Exo_2'] font-bold tracking-wider text-[var(--electric-volt)] mb-4">
                 YOUR RANKING
               </h3>
-              
+
               <div className="text-center mb-6">
                 <div className="font-['Exo_2'] font-black text-6xl mb-2">
                   <span className="bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] bg-clip-text text-transparent">
@@ -300,7 +297,7 @@ export function Leaderboard() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h3 className="font-['Exo_2'] font-bold tracking-wider text-[var(--algorand-cyan)] mb-4">
                 ACHIEVEMENTS
@@ -313,11 +310,11 @@ export function Leaderboard() {
                   { icon: "🔥", name: "Hot Streak", unlocked: true },
                   { icon: "⚡", name: "Speed Demon", unlocked: false },
                 ].map((achievement, index) => (
-                  <div key={index} 
-                       className={`p-3 rounded-xl border transition-all duration-200
-                                 ${achievement.unlocked 
-                                   ? 'bg-gradient-to-br from-[var(--algorand-cyan)]/10 to-[var(--electric-volt)]/10 border-[var(--algorand-cyan)]/30'
-                                   : 'bg-white/5 border-white/10 opacity-40'}`}>
+                  <div key={index}
+                    className={`p-3 rounded-xl border transition-all duration-200
+                                 ${achievement.unlocked
+                        ? 'bg-gradient-to-br from-[var(--algorand-cyan)]/10 to-[var(--electric-volt)]/10 border-[var(--algorand-cyan)]/30'
+                        : 'bg-white/5 border-white/10 opacity-40'}`}>
                     <div className="text-3xl mb-2">{achievement.icon}</div>
                     <div className="text-xs font-['Rajdhani'] text-white/80">{achievement.name}</div>
                   </div>
@@ -330,7 +327,7 @@ export function Leaderboard() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h3 className="font-['Exo_2'] font-bold tracking-wider text-white mb-4">
                 RECENT ACTIVITY

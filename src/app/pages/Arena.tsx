@@ -92,7 +92,7 @@ export function Arena() {
         <div>
           <h1 className="font-['Exo_2'] font-black text-4xl tracking-wider mb-2">
             <span className="bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] bg-clip-text text-transparent">
-              PUSHBET
+              FITNESS ARENA
             </span>
           </h1>
           <p className="text-white/60 font-['Rajdhani'] tracking-wide">

@@ -19,7 +19,9 @@ export function MyWallet() {
         setLoading(true);
         const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
         const accountInfo = await algodClient.accountInformation(activeAccount.address).do();
-        const algoBalance = algosdk.microalgosToAlgos(accountInfo.amount);
+        // Ensure amount is a valid non-negative number
+        const amount = Math.max(0, Number(accountInfo.amount) || 0);
+        const algoBalance = algosdk.microalgosToAlgos(amount);
         setBalance(algoBalance.toFixed(2));
 
         // Fetch Trust Score

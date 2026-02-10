@@ -1,8 +1,33 @@
-import { Outlet } from "react-router-dom";
+import { FaHome, FaRunning, FaHandHoldingHeart, FaLeaf, FaCar, FaWallet, FaTrophy, FaUser, FaLock, FaGavel, FaStore, FaBuilding } from "react-icons/fa";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { ConnectWalletButton } from "./ConnectWalletButton";
+import { useAuth } from "../context/AuthContext";
+import { useWallet } from "@txnlab/use-wallet-react";
 
 export function Layout() {
+  const { user, isAuthenticated } = useAuth();
+  const { activeAccount } = useWallet();
+  const location = useLocation();
+
+  // Public Routes that don't need auth
+  const publicRoutes = ["/login", "/signup"];
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
+  if (!isAuthenticated && !isPublicRoute) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If on login/signup but already authenticated, go to dashboard
+  if (isAuthenticated && isPublicRoute) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Render for Public Routes (no sidebar/layout wrapper ideally, but keeping consistent style)
+  if (isPublicRoute) {
+    return <Outlet />;
+  }
+
   return (
     <div className="dark min-h-screen bg-[var(--deep-charcoal)] font-['Rajdhani'] overflow-hidden">
       {/* Gradient background */}
@@ -21,9 +46,25 @@ export function Layout() {
 
       {/* Main Content */}
       <div className="relative ml-20 p-8 min-h-screen">
-        {/* Global Wallet Connection */}
-        <div className="absolute top-8 right-8 z-50">
-          <ConnectWalletButton />
+        {/* Top Bar */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="font-['Exo_2'] font-black text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] opacity-50">
+              CAMPUS VITALITY PROTOCOL
+            </h1>
+            <p className="text-gray-400 text-sm mt-1">
+              Welcome, <span className="text-white font-bold">{user?.username}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {!activeAccount && isAuthenticated && (
+              <div className="text-yellow-500 text-sm font-bold animate-pulse">
+                ⚠ Please Connect Wallet to interact
+              </div>
+            )}
+            <ConnectWalletButton />
+          </div>
         </div>
         <Outlet />
       </div>

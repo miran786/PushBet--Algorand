@@ -9,19 +9,57 @@ export function ValidatorNode() {
     const [loading, setLoading] = useState(true);
 
     const fetchAssignments = async () => {
-        if (!activeAccount) return;
+        // if (!activeAccount) return; // Commented out for demo purposes to show dummy data
         try {
             setLoading(true);
+            // Fetch real data
             const res = await fetch(`http://localhost:8000/api/civic/validator/assignments?walletAddress=${activeAccount.address}`);
-            const data = await res.json();
-            setAssignments(data);
+            const realData = await res.json();
+
+            // Dummy Data for Demo
+            const dummyData = [
+                {
+                    _id: "dummy_1",
+                    imageUrl: "https://images.unsplash.com/photo-1580133318324-f2f76d987d6d?w=800",
+                    aiConfidence: 0.92,
+                    type: "clean"
+                },
+                {
+                    _id: "dummy_2",
+                    imageUrl: "https://images.unsplash.com/photo-1530587198032-3d642c969074?w=800",
+                    aiConfidence: 0.15,
+                    type: "messy"
+                }
+            ];
+
+            setAssignments([...realData, ...dummyData]);
         } catch (e) {
             console.error(e);
+            // Fallback to dummy data on error
+            setAssignments([
+                {
+                    _id: "dummy_1",
+                    imageUrl: "https://images.unsplash.com/photo-1580133318324-f2f76d987d6d?w=800",
+                    aiConfidence: 0.92,
+                    type: "clean"
+                },
+                {
+                    _id: "dummy_2",
+                    imageUrl: "https://images.unsplash.com/photo-1530587198032-3d642c969074?w=800",
+                    aiConfidence: 0.15,
+                    type: "messy"
+                }
+            ]);
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchAssignments();
+    }, [activeAccount]);
+
+    // Trigger fetch on mount regardless of wallet for demo
     useEffect(() => {
         fetchAssignments();
     }, [activeAccount]);

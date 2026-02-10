@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { FaDumbbell, FaBroom, FaHandHoldingHeart, FaBus } from "react-icons/fa";
+import { FaDumbbell, FaBroom, FaHandHoldingHeart, FaBus, FaStore } from "react-icons/fa";
 
 export function Dashboard() {
     return (
@@ -88,6 +88,24 @@ export function Dashboard() {
                         </h2>
                         <p className="text-[var(--holographic-silver)]">
                             Split rides. Geo-fenced auto-payouts when you reach the campus.
+                        </p>
+                    </div>
+                </Link>
+
+                {/* Marketplace */}
+                <Link to="/marketplace" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-orange-500/20 hover:border-orange-500 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,165,0,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="p-8 relative z-10">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 rounded-xl bg-orange-500/20 text-orange-500">
+                                <FaStore size={32} />
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">
+                            Marketplace
+                        </h2>
+                        <p className="text-[var(--holographic-silver)]">
+                            Buy and sell campus goods. Textbooks, electronics, and more.
                         </p>
                     </div>
                 </Link>

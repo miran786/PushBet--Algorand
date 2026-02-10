@@ -8,6 +8,7 @@ const dotenv = require("dotenv");
 const mongoose = require("./database");
 const userRoutes = require("./routes/userRoutes");
 const gameRoutes = require("./routes/gameRoutes");
+const gamificationRoutes = require("./routes/gamificationRoutes");
 const { Server } = require("socket.io");
 
 dotenv.config();

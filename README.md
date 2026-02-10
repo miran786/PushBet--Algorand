@@ -81,6 +81,11 @@ Most campus apps are isolated silos. CVP unifies them into a single **On-Chain I
 *   **Action:** Peer-to-peer trading of campus goods.
 *   **Testnet App ID:** `755297353`
 
+#### **E. Hyper-Local Crowd-Staking (The Canteen DAO)**
+Allow students to crowd-fund campus infrastructure directly.
+*   **Scenario:** "We want a new Coffee Machine." Students stake ALGO; funds stream to vendor only when target is met.
+*   **Algorand Feature:** **LogicSigs (Smart Signatures)**. The machine has its own wallet that only dispenses coffee to NFT contributors.
+
 ---
 
 ## 🏗️ Architecture

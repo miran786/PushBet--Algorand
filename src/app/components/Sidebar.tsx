@@ -1,5 +1,5 @@
 import { Trophy, Users, Wallet, Medal, Shield, User } from "lucide-react";
-import { FaGavel, FaStore } from "react-icons/fa";
+import { FaHome, FaRunning, FaHandHoldingHeart, FaLeaf, FaCar, FaWallet, FaTrophy, FaUser, FaLock, FaGavel, FaStore, FaBuilding } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 export function Sidebar() {
@@ -7,12 +7,13 @@ export function Sidebar() {
 
   const navItems = [
     { icon: Trophy, label: "Arena", path: "/" },
-    { icon: Users, label: "Hostel League", path: "/hostel-league" },
+    // { icon: Users, label: "Hostel League", path: "/hostel-league" }, // Removed per request
     { icon: Wallet, label: "My Wallet", path: "/wallet" },
     { icon: Medal, label: "Leaderboard", path: "/leaderboard" },
+    { icon: FaStore, label: "Marketplace", path: "/marketplace" },
+    { icon: FaBuilding, label: "Infrastructure", path: "/infrastructure" },
     { icon: User, label: "Profile", path: "/profile" }, // New Profile
     { icon: FaGavel, label: "Validator", path: "/validator" }, // Validator Node
-    { icon: FaStore, label: "Market", path: "/marketplace" }, // Marketplace
     { icon: Shield, label: "Admin", path: "/admin" },
   ];
 

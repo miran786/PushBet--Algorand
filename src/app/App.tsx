@@ -11,11 +11,15 @@ const walletManager = new WalletManager({
   ],
 });
 
+import { AuthProvider } from "./context/AuthContext";
+
 export default function App() {
   return (
     <WalletProvider manager={walletManager}>
-      <Toaster position="top-center" richColors />
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <Toaster position="top-center" richColors />
+        <RouterProvider router={router} />
+      </AuthProvider>
     </WalletProvider>
   );
 }
