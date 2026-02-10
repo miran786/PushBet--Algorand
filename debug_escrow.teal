@@ -82,12 +82,6 @@ itxn_submit
 b main_l11
 main_l13:
 txn Sender
-byte "item_id"
-app_local_get
-byte "none"
-==
-assert
-txn Sender
 int 755292569
 byte "Trust_Score"
 app_local_get_ex
@@ -120,14 +114,6 @@ byte "collateral"
 gtxn 0 Amount
 app_local_put
 main_l15:
-txn Sender
-byte "item_id"
-txna ApplicationArgs 1
-app_local_put
-txn Sender
-byte "borrow_time"
-global LatestTimestamp
-app_local_put
 int 1
 return
 main_l16:
@@ -149,14 +135,6 @@ main_l20:
 txn Sender
 byte "item_id"
 byte "none"
-app_local_put
-txn Sender
-byte "collateral"
-int 0
-app_local_put
-txn Sender
-byte "borrow_time"
-int 0
 app_local_put
 int 1
 return

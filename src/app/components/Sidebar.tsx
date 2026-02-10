@@ -1,14 +1,17 @@
 import { Trophy, Users, Wallet, Medal, Shield } from "lucide-react";
+import { FaGavel, FaStore } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 export function Sidebar() {
   const location = useLocation();
-  
+
   const navItems = [
     { icon: Trophy, label: "Arena", path: "/" },
     { icon: Users, label: "Hostel League", path: "/hostel-league" },
     { icon: Wallet, label: "My Wallet", path: "/wallet" },
     { icon: Medal, label: "Leaderboard", path: "/leaderboard" },
+    { icon: FaGavel, label: "Validator", path: "/validator" }, // Validator Node
+    { icon: FaStore, label: "Market", path: "/marketplace" }, // Marketplace
     { icon: Shield, label: "Admin", path: "/admin" },
   ];
 
@@ -34,30 +37,28 @@ export function Sidebar() {
               className={`
                 group relative w-14 h-14 rounded-xl flex items-center justify-center
                 transition-all duration-300 backdrop-blur-xl
-                ${
-                  isActive
-                    ? isAdmin
-                      ? "bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/50 shadow-lg shadow-red-500/30"
-                      : "bg-gradient-to-br from-[var(--algorand-cyan)]/20 to-[var(--electric-volt)]/20 border border-[var(--algorand-cyan)]/50 shadow-lg shadow-[var(--neon-cyan-glow)]"
-                    : isAdmin
+                ${isActive
+                  ? isAdmin
+                    ? "bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/50 shadow-lg shadow-red-500/30"
+                    : "bg-gradient-to-br from-[var(--algorand-cyan)]/20 to-[var(--electric-volt)]/20 border border-[var(--algorand-cyan)]/50 shadow-lg shadow-[var(--neon-cyan-glow)]"
+                  : isAdmin
                     ? "bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/30"
                     : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--algorand-cyan)]/30"
                 }
               `}
             >
               <Icon
-                className={`w-6 h-6 transition-colors duration-300 ${
-                  isActive
-                    ? isAdmin
-                      ? "text-red-400"
-                      : "text-[var(--algorand-cyan)]"
-                    : isAdmin
+                className={`w-6 h-6 transition-colors duration-300 ${isActive
+                  ? isAdmin
+                    ? "text-red-400"
+                    : "text-[var(--algorand-cyan)]"
+                  : isAdmin
                     ? "text-white/60 group-hover:text-red-400"
                     : "text-white/60 group-hover:text-[var(--algorand-cyan)]"
-                }`}
+                  }`}
                 strokeWidth={2.5}
               />
-              
+
               {/* Tooltip */}
               <div className="absolute left-20 px-3 py-2 rounded-lg bg-[var(--matte-black)] border border-[var(--algorand-cyan)]/30 
                             backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none

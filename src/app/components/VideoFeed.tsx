@@ -36,6 +36,9 @@ export function VideoFeed({ onRepCount, isActive }: VideoFeedProps) {
 
     // Only draw if we have landmarks
     if (results.poseLandmarks) {
+      // Mirror canvas context to match video flip
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
       // Iterate through landmarks to draw connections and points
       // We can use MediaPipe's drawing utils if installed, or manual drawing
       // For simplicity/control, manual drawing:

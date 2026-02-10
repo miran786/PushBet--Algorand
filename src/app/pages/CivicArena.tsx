@@ -52,6 +52,23 @@ export function CivicArena() {
                     status: json.status,
                     confidence: json.confidence || 0.9
                 });
+
+                // Send to backend
+                try {
+                    const submitResponse = await fetch('http://localhost:8000/api/civic/verify-cleanliness', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: imgSrc,
+                            walletAddress: "TEST_WALLET_ADDRESS" // TODO: Get actual wallet from context
+                        })
+                    });
+                    const submitData = await submitResponse.json();
+                    console.log("Submission Result:", submitData);
+                } catch (e) {
+                    console.error("Backend submission failed", e);
+                }
+
             } else {
                 // Fallback parsing if JSON fails
                 const isMessy = responseText.toLowerCase().includes("messy");
@@ -109,11 +126,11 @@ export function CivicArena() {
                         {result.status === "clean" ? (
                             <>
                                 <FaCheckCircle className="text-green-500 text-6xl mb-4" />
-                                <h2 className="text-3xl font-bold text-white mb-2">VERIFIED CLEAN</h2>
+                                <h2 className="text-3xl font-bold text-white mb-2">AI VERIFIED</h2>
                                 <p className="text-green-400 font-mono mb-6">Confidence: {(result.confidence * 100).toFixed(1)}%</p>
-                                <div className="p-4 bg-green-500/20 border border-green-500 rounded-xl">
-                                    <p className="text-white">Smart Contract Reward Triggered!</p>
-                                    <p className="text-xs text-green-300 mt-1">App Call ID: 123456 (Placeholder)</p>
+                                <div className="p-4 bg-yellow-500/20 border border-yellow-500 rounded-xl">
+                                    <p className="text-white font-bold">Submitted for Admin Review</p>
+                                    <p className="text-xs text-yellow-300 mt-1">Reward pending approval</p>
                                 </div>
                             </>
                         ) : (
@@ -128,7 +145,7 @@ export function CivicArena() {
                             onClick={retake}
                             className="mt-8 px-6 py-2 border border-white/20 hover:bg-white/10 rounded-full text-white transition-colors"
                         >
-                            Try Again
+                            {result.status === "clean" ? "Submit Another" : "Try Again"}
                         </button>
                     </div>
                 )}

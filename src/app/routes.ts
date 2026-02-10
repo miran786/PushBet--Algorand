@@ -9,6 +9,9 @@ import { HostelLeague } from "./pages/HostelLeague";
 import { MyWallet } from "./pages/MyWallet";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Admin } from "./pages/Admin";
+import { ValidatorNode } from "./pages/ValidatorNode";
+import { Reputation } from "./pages/Reputation";
+import { Marketplace } from "./pages/Marketplace";
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +26,11 @@ export const router = createBrowserRouter([
       { path: "hostel-league", Component: HostelLeague },
       { path: "wallet", Component: MyWallet },
       { path: "leaderboard", Component: Leaderboard },
+      { path: "leaderboard", Component: Leaderboard },
       { path: "admin", Component: Admin },
+      { path: "validator", Component: ValidatorNode },
+      { path: "reputation", Component: Reputation },
+      { path: "marketplace", Component: Marketplace },
     ],
   },
 ]);

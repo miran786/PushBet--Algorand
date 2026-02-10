@@ -48,10 +48,11 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 // Routes
-app.use("/user", userRoutes);
-app.use("/game", gameRoutes);
-app.use("/api", require("./routes/civicRoutes"));
-app.use("/api", require("./routes/assetRoutes"));
+app.use("/api/users", userRoutes);
+app.use("/api/game", gameRoutes);
+app.use("/api/gamification", gamificationRoutes); // Added gamification routes
+app.use("/api/civic", require("./routes/civicRoutes"));
+app.use("/api/asset", require("./routes/assetRoutes"));
 app.use("/api", require("./routes/commuteRoutes"));
 
 // Now pass io to the admin routes after io is initialized

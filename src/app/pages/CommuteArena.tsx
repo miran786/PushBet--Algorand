@@ -68,7 +68,7 @@ export function CommuteArena() {
     const [isOptedIn, setIsOptedIn] = useState(false);
     const [role, setRole] = useState<"none" | "rider" | "driver">("none");
     const [driverAddr, setDriverAddr] = useState<string>("");
-    
+
     // Driver Matching State
     const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
 
@@ -102,7 +102,7 @@ export function CommuteArena() {
             try {
                 const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
                 const info = await algodClient.accountInformation(activeAccount.address).do();
-                
+
                 // Check if opted into APP_ID
                 const appLocalState = info['apps-local-state'] || [];
                 const isOpted = appLocalState.some((app: any) => app.id === APP_ID);
@@ -147,7 +147,7 @@ export function CommuteArena() {
         try {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
-            
+
             const txn = algosdk.makeApplicationOptInTxnFromObject({
                 sender: activeAccount.address,
                 appIndex: APP_ID,
@@ -160,7 +160,7 @@ export function CommuteArena() {
 
             await algodClient.sendRawTransaction(filteredSignedTxns).do();
             await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 4);
-            
+
             setIsOptedIn(true);
             toast.success("Account Created Successfully!");
         } catch (e) {
@@ -172,14 +172,14 @@ export function CommuteArena() {
     // Register Role
     const registerRole = async (selectedRole: "rider" | "driver") => {
         if (!activeAccount) return;
-        
+
         // Optimistic UI update for demo
         setRole(selectedRole);
 
         try {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
-            
+
             const method = selectedRole === "rider" ? "register_rider" : "register_driver";
             const appArgs = [new TextEncoder().encode(method)];
 
@@ -203,6 +203,10 @@ export function CommuteArena() {
         }
     };
 
+    // Gamification State
+    const [co2Saved, setCo2Saved] = useState(0);
+    const [nftMinted, setNftMinted] = useState(false);
+
     // Start Trip (Deposit Collateral)
     const startTrip = async () => {
         if (!driverAddr) {
@@ -211,9 +215,9 @@ export function CommuteArena() {
         }
 
         if (!activeAccount) {
-             setRideStatus("active");
-             toast.success("Trip Started! (Demo Mode)");
-             return;
+            setRideStatus("active");
+            toast.success("Trip Started! (Demo Mode)");
+            return;
         }
         try {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
@@ -259,11 +263,11 @@ export function CommuteArena() {
         try {
             if (!GEMINI_API_KEY) {
                 // Mock verification for demo if no key
-                 setTimeout(() => {
-                     toast.success("AI Verified Commute Context! (Mock)");
-                     handleEndTrip();
-                     setAiVerifying(false);
-                 }, 2000);
+                setTimeout(() => {
+                    toast.success("AI Verified Commute Context! (Mock)");
+                    handleEndTrip();
+                    setAiVerifying(false);
+                }, 2000);
                 return;
             }
 
@@ -309,12 +313,38 @@ export function CommuteArena() {
         setRideStatus("arrived");
         setPayoutStatus("pending");
 
+        // CO2 Calculation: 1km = 0.2kg. Demo: Add 2.5kg per trip.
+        const tripCo2 = 2.5;
+        const newTotal = co2Saved + tripCo2;
+        setCo2Saved(newTotal);
+
+        // Check NFT Threshold (e.g., 5kg for Demo)
+        if (newTotal >= 5 && !nftMinted) {
+            try {
+                const res = await fetch('http://localhost:8000/api/gamification/nft/mint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: activeAccount?.address || "DEMO_USER",
+                        co2Saved: newTotal
+                    })
+                });
+                const data = await res.json();
+                if (data.txId) {
+                    setNftMinted(true);
+                    toast.success("🌱 Green Commuter NFT Minted!");
+                }
+            } catch (e) {
+                console.error("NFT Mint failed", e);
+            }
+        }
+
         if (!activeAccount || !driverAddr) {
             // Demo Mode
-             setTimeout(() => {
+            setTimeout(() => {
                 setPayoutStatus("success");
                 toast.success(`Trip Completed! Driver Paid. (Demo)`);
-             }, 2000);
+            }, 2000);
             return;
         }
 
@@ -322,7 +352,7 @@ export function CommuteArena() {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
             // Increase fee for inner txn
-            params.fee = BigInt(2000); 
+            params.fee = BigInt(2000);
             params.flatFee = true;
 
             const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
@@ -342,7 +372,7 @@ export function CommuteArena() {
 
             toast.info("Processing Payment...");
             await algosdk.waitForConfirmation(algodClient, txId, 4);
-            
+
             setPayoutStatus("success");
             toast.success(`Trip Completed! Driver Paid. TxID: ${txId.substring(0, 8)}...`);
 
@@ -370,7 +400,7 @@ export function CommuteArena() {
 
             {/* Main Content Area */}
             <div className="w-full bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[500px] flex flex-col">
-                
+
                 {/* 1. NOT OPTED IN STATE */}
                 {!isOptedIn && (
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
@@ -380,15 +410,15 @@ export function CommuteArena() {
                                 Initialize your account to start tracking rides and earning rewards automatically.
                             </p>
                         </div>
-                        
-                        <button 
+
+                        <button
                             onClick={handleCreateAccount}
                             className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 
                                      text-white text-lg font-bold rounded-full shadow-lg hover:shadow-pink-500/50 hover:scale-105 transition-all"
                         >
                             Create Student Account
                         </button>
-                        
+
                         <p className="text-xs text-gray-500">
                             (This registers you on the Algorand blockchain automatically)
                         </p>
@@ -400,14 +430,14 @@ export function CommuteArena() {
                     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in zoom-in duration-300">
                         <h2 className="text-2xl font-bold text-white">How are you commuting today?</h2>
                         <div className="flex gap-6">
-                            <button 
+                            <button
                                 onClick={() => registerRole("rider")}
                                 className="w-40 h-40 bg-gray-800 hover:bg-pink-900/20 border border-gray-700 hover:border-pink-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
                             >
                                 <FaUser className="text-4xl text-pink-500 group-hover:scale-110 transition-transform" />
                                 <span className="text-xl font-bold text-white">I Need a Ride</span>
                             </button>
-                            <button 
+                            <button
                                 onClick={() => registerRole("driver")}
                                 className="w-40 h-40 bg-gray-800 hover:bg-purple-900/20 border border-gray-700 hover:border-purple-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
                             >
@@ -425,8 +455,8 @@ export function CommuteArena() {
                         <h2 className="text-3xl font-bold text-white">Driver Dashboard</h2>
                         <p className="text-gray-400">Waiting for ride requests...</p>
                         <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                             <p className="text-sm text-gray-400">Your Address:</p>
-                             <p className="font-mono text-xs text-green-400 break-all">{activeAccount?.address}</p>
+                            <p className="text-sm text-gray-400">Your Address:</p>
+                            <p className="font-mono text-xs text-green-400 break-all">{activeAccount?.address}</p>
                         </div>
                         <button onClick={() => setRole("none")} className="text-gray-500 hover:text-white text-sm">Switch Role</button>
                     </div>
@@ -442,13 +472,13 @@ export function CommuteArena() {
 
                         <div className="grid gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {availableDrivers.map((driver) => (
-                                <div 
+                                <div
                                     key={driver.id}
                                     onClick={() => setDriverAddr(driver.address)}
                                     className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                                              ${driverAddr === driver.address 
-                                                ? 'bg-pink-500/20 border-pink-500' 
-                                                : 'bg-gray-800 border-gray-700 hover:border-pink-500/50'}`}
+                                              ${driverAddr === driver.address
+                                            ? 'bg-pink-500/20 border-pink-500'
+                                            : 'bg-gray-800 border-gray-700 hover:border-pink-500/50'}`}
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
@@ -457,7 +487,7 @@ export function CommuteArena() {
                                         <div>
                                             <h3 className="text-white font-bold text-lg">{driver.name}</h3>
                                             <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                <span className="flex items-center text-yellow-400 gap-1"><FaStar className="w-3 h-3"/> {driver.rating}</span>
+                                                <span className="flex items-center text-yellow-400 gap-1"><FaStar className="w-3 h-3" /> {driver.rating}</span>
                                                 <span>•</span>
                                                 <span>{driver.distance.toFixed(2)} km away</span>
                                             </div>
@@ -473,7 +503,7 @@ export function CommuteArena() {
                         </div>
 
                         <div className="mt-auto pt-6 border-t border-white/10">
-                            <button 
+                            <button
                                 onClick={startTrip}
                                 disabled={!driverAddr}
                                 className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed
@@ -502,7 +532,7 @@ export function CommuteArena() {
                             <Marker position={[VIT_COORDS.lat, VIT_COORDS.lng]}>
                                 <Popup>VIT Pune (Destination)</Popup>
                             </Marker>
-                            
+
                             <Marker position={[coords.lat, coords.lng]}>
                                 <Popup>You are Here</Popup>
                             </Marker>
@@ -533,7 +563,7 @@ export function CommuteArena() {
                 {isOptedIn && role === "rider" && rideStatus === "verifying_photo" && (
                     <div className="flex-1 flex flex-col p-6 items-center justify-center bg-black">
                         <h3 className="text-xl font-bold text-white mb-6">Verify Commute Context</h3>
-                        
+
                         <div className="relative w-full max-w-lg aspect-video bg-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-8 group">
                             {imgSrc ? (
                                 <img src={imgSrc} alt="Commute Proof" className="w-full h-full object-cover" />
@@ -557,23 +587,23 @@ export function CommuteArena() {
 
                         <div className="flex gap-4 w-full max-w-lg">
                             {!imgSrc ? (
-                                <button 
-                                    onClick={capture} 
+                                <button
+                                    onClick={capture}
                                     className="flex-1 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <FaCamera /> CAPTURE
                                 </button>
                             ) : (
                                 <>
-                                    <button 
-                                        onClick={() => setImgSrc(null)} 
+                                    <button
+                                        onClick={() => setImgSrc(null)}
                                         disabled={aiVerifying}
                                         className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-50"
                                     >
                                         RETAKE
                                     </button>
-                                    <button 
-                                        onClick={performAiVerification} 
+                                    <button
+                                        onClick={performAiVerification}
                                         disabled={aiVerifying}
                                         className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-500 transition-colors disabled:opacity-50"
                                     >
@@ -591,7 +621,7 @@ export function CommuteArena() {
                         <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-2 animate-bounce">
                             <FaCheckCircle className="text-green-500 text-5xl" />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <h2 className="text-3xl font-bold text-white">Ride Complete!</h2>
                             <p className="text-gray-400">Driver has been paid automatically.</p>
@@ -608,6 +638,31 @@ export function CommuteArena() {
                                 <span className="text-gray-400">Verification</span>
                                 <span className="text-white font-mono">AI-Gemini-1.5</span>
                             </div>
+                            <div className="pt-4 border-t border-white/10">
+                                <div className="flex justify-between items-center text-sm mb-2">
+                                    <span className="text-gray-400">CO2 Saved</span>
+                                    <span className="text-green-400 font-bold">{co2Saved.toFixed(1)} kg</span>
+                                </div>
+                                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                                    {/* Scale 0-10kg */}
+                                    <div
+                                        className="h-full bg-green-500 transition-all duration-1000"
+                                        style={{ width: `${Math.min((co2Saved / 5) * 100, 100)}%` }}
+                                    />
+                                </div>
+                                <div className="text-xs text-right text-gray-500 mt-1">Goal: 5kg for NFT</div>
+                            </div>
+                            {nftMinted && (
+                                <div className="mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3 animate-pulse">
+                                    <div className="p-2 bg-green-500 rounded-lg text-black">
+                                        <FaStar />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="text-white font-bold text-sm">NFT UNLOCKED!</div>
+                                        <div className="text-green-300 text-xs">Green Commuter Badge Minted</div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <button

@@ -41,7 +41,7 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: activeAccount.address,
-        receiver: activeAccount.address, // Self-transaction for demo
+        receiver: "HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUC35DQYIJCKQKZQ", // House Wallet (Testnet)
         amount: amountMicroAlgos,
         suggestedParams: params,
         note: new TextEncoder().encode(`PushBet Stake: ${stakeAmount} ALGO | Target: ${repTarget} Reps`),

@@ -11,7 +11,8 @@ import "@tensorflow/tfjs";
 export function AssetArena() {
     const { activeAccount, signTransactions } = useWallet();
     const [mode, setMode] = useState<"borrower" | "lender">("borrower");
-    
+    // Force Rebuild Identifier: v2
+
     // Borrower State
     const [scanResult, setScanResult] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
@@ -27,59 +28,59 @@ export function AssetArena() {
 
     // Smart Contract State
     const [appId, setAppId] = useState<string>("");
+    const [trustAppId, setTrustAppId] = useState<string>("123456789"); // Default Demo ID
     const [collateralEnabled, setCollateralEnabled] = useState(true);
+    const [trustScore, setTrustScore] = useState(0);
+    const [isTrusted, setIsTrusted] = useState(false);
+
+    // Fetch Trust Score
+    useEffect(() => {
+        const fetchTrust = async () => {
+            if (!activeAccount || !trustAppId) return;
+            try {
+                const indexerClient = new algosdk.Indexer('', 'https://testnet-indexer.algonode.cloud', 443);
+                const accountInfo = await indexerClient.lookupAccountAppLocalStates(activeAccount.address).do();
+                const trustApp = accountInfo['apps-local-states']?.find((app: any) => app.id === parseInt(trustAppId));
+
+                if (trustApp) {
+                    trustApp['key-value']?.forEach((kv: any) => {
+                        const key = atob(kv.key);
+                        if (key === "Trust_Score") {
+                            const score = kv.value.uint;
+                            setTrustScore(score);
+                            setIsTrusted(score >= 50);
+                            if (score >= 50) setCollateralEnabled(false); // Auto-disable collateral
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch Trust Score", e);
+            }
+        };
+        fetchTrust();
+    }, [activeAccount, trustAppId]);
 
     // Load AI Model
     useEffect(() => {
         const loadModel = async () => {
-            try {
-                const loadedModel = await cocoSsd.load();
-                setModel(loadedModel);
-                console.log("Coco-SSD Model Loaded");
-            } catch (err) {
-                console.error("Failed to load model", err);
-            }
+            const m = await cocoSsd.load();
+            setModel(m);
         };
         loadModel();
     }, []);
 
-    const detect = async () => {
-        if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.readyState === 4 && model) {
-            const video = webcamRef.current.video;
-            const predictions = await model.detect(video);
-            setPredictions(predictions);
-
-            // Simple verification logic: Check if a "laptop", "cell phone", or "book" is detected
-            const targetItems = ["laptop", "cell phone", "book", "bottle", "keyboard", "cup"];
-            const found = predictions.find(p => targetItems.includes(p.class));
-            
-            if (found) {
-                setVerifiedItem(found.class);
-                toast.success(`Verified: ${found.class.toUpperCase()} detected!`);
-                setLenderStep("confirmed");
-            }
-        }
-    };
-
-    // AI Loop
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (mode === "lender" && lenderStep === "verifying") {
-            interval = setInterval(() => {
-                detect();
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [mode, lenderStep, model]);
-
-
-    const handleScan = (result: any, _error: any) => {
-        if (result && !scanResult) {
+    // Handle QR Scan
+    const handleScan = (result: any, error: any) => {
+        if (!!result) {
             setScanResult(result?.text);
             setBorrowStatus("confirming");
         }
+        if (!!error) {
+            // console.info(error);
+        }
     };
 
+    // Opt-In to App
     const handleOptIn = async () => {
         if (!activeAccount || !appId) {
             toast.error("Connect Wallet & Enter App ID");
@@ -88,7 +89,7 @@ export function AssetArena() {
         try {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
-            
+
             const txn = algosdk.makeApplicationOptInTxnFromObject({
                 sender: activeAccount.address,
                 appIndex: parseInt(appId),
@@ -100,7 +101,7 @@ export function AssetArena() {
             const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
 
             await algodClient.sendRawTransaction(filteredSignedTxns).do();
-            toast.success("Opted In Successfully!");
+            toast.success("Opt-In Successful!");
         } catch (e) {
             console.error(e);
             toast.error("Opt-In Failed");
@@ -123,8 +124,9 @@ export function AssetArena() {
 
             const txns = [];
 
-            // 1. Optional Collateral Payment
-            if (collateralEnabled) {
+            // 1. Conditional Collateral Payment
+            // Only require 5 ALGO if Not Trusted (Score < 50)
+            if (!isTrusted) {
                 const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                     sender: activeAccount.address,
                     receiver: appAddr,
@@ -132,6 +134,8 @@ export function AssetArena() {
                     suggestedParams: params
                 });
                 txns.push(payTxn);
+            } else {
+                toast.success("Trust Score >= 50: 0 Collateral Required! 🛡️");
             }
 
             // 2. App Call (Borrow)
@@ -155,7 +159,7 @@ export function AssetArena() {
             const response = await algodClient.sendRawTransaction(filteredSignedTxns).do();
             const txid = response.txid;
             setTxId(txid);
-            
+
             await algosdk.waitForConfirmation(algodClient, txid, 4);
 
             toast.success("Item Borrowed Successfully!");
@@ -179,7 +183,7 @@ export function AssetArena() {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
             // Increase fee for inner txn
-            params.fee = BigInt(2000); 
+            params.fee = BigInt(2000);
             params.flatFee = true;
 
             const txn = algosdk.makeApplicationNoOpTxnFromObject({
@@ -211,10 +215,10 @@ export function AssetArena() {
                 <p className="text-[var(--holographic-silver)]">
                     Borrow equipment instantly. Smart Contract collateral ensures return.
                 </p>
-                
+
                 {/* Mode Switcher */}
                 <div className="absolute top-0 right-0">
-                    <button 
+                    <button
                         onClick={() => setMode(mode === "borrower" ? "lender" : "borrower")}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full border border-gray-700 hover:border-[var(--electric-volt)] text-sm font-bold text-white transition-all"
                     >
@@ -224,9 +228,9 @@ export function AssetArena() {
                 </div>
 
                 <div className="flex items-center gap-2 justify-center mt-4">
-                    <input 
-                        type="text" 
-                        placeholder="App ID" 
+                    <input
+                        type="text"
+                        placeholder="App ID"
                         className="bg-gray-800 text-white p-2 rounded border border-gray-700 w-32 text-center"
                         value={appId}
                         onChange={(e) => setAppId(e.target.value)}
@@ -248,7 +252,7 @@ export function AssetArena() {
                     {lenderStep === "idle" && (
                         <div className="space-y-6">
                             <p className="text-gray-400">Scan items to verify their condition before return.</p>
-                            <button 
+                            <button
                                 onClick={() => setLenderStep("verifying")}
                                 className="px-8 py-4 bg-[var(--algorand-cyan)] text-black font-bold rounded-xl shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto"
                             >
@@ -270,7 +274,7 @@ export function AssetArena() {
                                 {predictions.length > 0 && (
                                     <div className="absolute inset-0 pointer-events-none">
                                         {predictions.map((p, i) => (
-                                            <div 
+                                            <div
                                                 key={i}
                                                 style={{
                                                     position: 'absolute',
@@ -293,7 +297,7 @@ export function AssetArena() {
                                     Scanning...
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setLenderStep("idle")}
                                 className="text-gray-500 hover:text-white"
                             >
@@ -311,8 +315,8 @@ export function AssetArena() {
                                 <h3 className="text-xl font-bold text-white">Verification Complete</h3>
                                 <p className="text-[var(--algorand-cyan)] font-mono mt-2">Item: {verifiedItem?.toUpperCase()}</p>
                             </div>
-                            
-                            <button 
+
+                            <button
                                 onClick={confirmReturn}
                                 className="w-full py-4 bg-[var(--electric-volt)] text-black font-bold rounded-xl shadow-lg hover:bg-yellow-400 transition-all"
                             >
@@ -341,19 +345,23 @@ export function AssetArena() {
                                     <FaBoxOpen className="text-[var(--electric-volt)] text-6xl mb-4" />
                                     <h3 className="text-2xl font-bold text-white mb-2">Item Scanned</h3>
                                     <p className="font-mono text-[var(--algorand-cyan)] text-xl mb-8">{scanResult}</p>
-                                    
-                                    <div className="p-4 bg-gray-800 border border-gray-700 rounded-xl mb-6 w-full">
+
+                                    <div className={`p-4 border rounded-xl mb-6 w-full ${isTrusted ? 'bg-green-900/20 border-green-500' : 'bg-gray-800 border-gray-700'}`}>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-gray-300">Trust Score</span>
+                                            <span className={`font-bold ${isTrusted ? 'text-green-400' : 'text-gray-400'}`}>{trustScore} / 100</span>
+                                        </div>
+
                                         <label className="flex items-center justify-between cursor-pointer">
-                                            <span className="text-gray-300">Collateral (5 ALGO)</span>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={collateralEnabled} 
-                                                onChange={(e) => setCollateralEnabled(e.target.checked)}
-                                                className="w-6 h-6 text-yellow-500 rounded focus:ring-yellow-500"
-                                            />
+                                            <span className={isTrusted ? "text-gray-500 line-through" : "text-gray-300"}>Collateral (5 ALGO)</span>
+                                            {isTrusted ? (
+                                                <FaCheckCircle className="text-green-500 text-xl" />
+                                            ) : (
+                                                <span className="text-yellow-500 text-sm font-bold">REQUIRED</span>
+                                            )}
                                         </label>
-                                        <p className="text-xs text-gray-500 mt-2 text-left">
-                                            {collateralEnabled ? "You will deposit 5 ALGO." : "No collateral required (Trust-based)."}
+                                        <p className={`text-xs mt-2 text-left ${isTrusted ? 'text-green-400' : 'text-gray-500'}`}>
+                                            {isTrusted ? "✨ Collateral Waived (Trusted User)" : "⚠️ Low Trust Score. Collateral Required."}
                                         </p>
                                     </div>
 

@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   pastGames: [{ type: mongoose.Schema.Types.ObjectId, ref: "PastGame" }],
   winnings: [{ type: Number }],
   losses: [{ type: Number }],
+  trustScore: { type: Number, default: 50 }, // Start with neutral trust
 });
 
 module.exports = mongoose.model("User", userSchema);

@@ -1,0 +1,159 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l26
+txn OnCompletion
+int OptIn
+==
+bnz main_l25
+txn OnCompletion
+int CloseOut
+==
+bnz main_l24
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l23
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l22
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "add_trust"
+==
+bnz main_l18
+txna ApplicationArgs 0
+byte "slash_trust"
+==
+bnz main_l14
+txna ApplicationArgs 0
+byte "add_fitness"
+==
+bnz main_l13
+txna ApplicationArgs 0
+byte "add_eco"
+==
+bnz main_l12
+err
+main_l12:
+txn Sender
+global CreatorAddress
+==
+assert
+txna ApplicationArgs 1
+byte "Eco_Points"
+txna ApplicationArgs 1
+byte "Eco_Points"
+app_local_get
+txna ApplicationArgs 2
+btoi
++
+app_local_put
+int 1
+return
+main_l13:
+txn Sender
+global CreatorAddress
+==
+assert
+txna ApplicationArgs 1
+byte "Fitness_Level"
+txna ApplicationArgs 1
+byte "Fitness_Level"
+app_local_get
+txna ApplicationArgs 2
+btoi
++
+app_local_put
+int 1
+return
+main_l14:
+txn Sender
+global CreatorAddress
+==
+assert
+txna ApplicationArgs 1
+byte "Trust_Score"
+txna ApplicationArgs 1
+byte "Trust_Score"
+app_local_get
+txna ApplicationArgs 2
+btoi
+<
+bnz main_l17
+txna ApplicationArgs 1
+byte "Trust_Score"
+app_local_get
+txna ApplicationArgs 2
+btoi
+-
+main_l16:
+app_local_put
+int 1
+return
+main_l17:
+int 0
+b main_l16
+main_l18:
+txn Sender
+global CreatorAddress
+==
+assert
+txna ApplicationArgs 1
+byte "Trust_Score"
+txna ApplicationArgs 1
+byte "Trust_Score"
+app_local_get
+txna ApplicationArgs 2
+btoi
++
+int 100
+>
+bnz main_l21
+txna ApplicationArgs 1
+byte "Trust_Score"
+app_local_get
+txna ApplicationArgs 2
+btoi
++
+main_l20:
+app_local_put
+int 1
+return
+main_l21:
+int 100
+b main_l20
+main_l22:
+int 1
+return
+main_l23:
+int 1
+return
+main_l24:
+int 1
+return
+main_l25:
+txn Sender
+byte "Trust_Score"
+int 0
+app_local_put
+txn Sender
+byte "Fitness_Level"
+int 0
+app_local_put
+txn Sender
+byte "Eco_Points"
+int 0
+app_local_put
+int 1
+return
+main_l26:
+int 1
+return

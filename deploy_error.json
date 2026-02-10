@@ -1,0 +1,5 @@
+{
+  "message": "Do not know how to serialize a BigInt",
+  "stack": "TypeError: Do not know how to serialize a BigInt\n    at JSON.stringify (<anonymous>)\n    at deployApp (file:///D:/GIT/PushBet--Algorand/scripts/deploy_all.js:81:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (file:///D:/GIT/PushBet--Algorand/scripts/deploy_all.js:108:24)",
+  "response": null
+}

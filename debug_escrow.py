@@ -5,6 +5,9 @@ def approval_program():
     item_key = Bytes("item_id")
     collateral_key = Bytes("collateral")
     borrow_time_key = Bytes("borrow_time")
+    
+    TRUST_APP_ID = Int(755292569) 
+    trust_score_key = Bytes("Trust_Score")
 
     # Operations
     op_borrow = Bytes("borrow")
@@ -13,60 +16,39 @@ def approval_program():
     # Handle Creation
     handle_creation = Return(Int(1))
 
-    # Handle OptIn (Initialize Local State)
+    # Handle OptIn
     handle_optin = Seq([
         App.localPut(Txn.sender(), item_key, Bytes("none")),
-        App.localPut(Txn.sender(), collateral_key, Int(0)),
-        App.localPut(Txn.sender(), borrow_time_key, Int(0)),
         Return(Int(1))
     ])
 
-    # Borrow Item
-    # Group: [Payment (Optional), AppCall]
-    # Arg[1]: Item ID
-    # Note: Payment receiver must be App Address
-    
-    # Trust Integration
-    # Hardcoded Trust App ID for Testnet
-    TRUST_APP_ID = Int(755292569) 
-    trust_score_key = Bytes("Trust_Score")
-
     # Helper: Get Trust Score
-    # Returns (has_score, score)
     trust_score_val = App.localGetEx(Txn.sender(), TRUST_APP_ID, trust_score_key)
 
     borrow = Seq([
-        Assert(App.localGet(Txn.sender(), item_key) == Bytes("none")), # Ensure not already borrowing
+        # Assert(App.localGet(Txn.sender(), item_key) == Bytes("none")), 
         
         # Check Trust Score
         trust_score_val,
         
         # Conditional Logic
         If(
-            And(trust_score_val.hasValue(), trust_score_val.value() >= Int(50)) # Threshold: 50
+            And(trust_score_val.hasValue(), trust_score_val.value() >= Int(50))
         ).Then(
-            # High Trust: 0 Collateral
-            Seq([
-                App.localPut(Txn.sender(), collateral_key, Int(0)), # Mark 0 collateral
-            ])
+            App.localPut(Txn.sender(), collateral_key, Int(0))
         ).Else(
-            # Low Trust: Require 1 ALGO Payment (or borrow amount)
             Seq([
                 Assert(
                     And(
                         Global.group_size() == Int(2),
                         Gtxn[0].type_enum() == TxnType.Payment,
                         Gtxn[0].receiver() == Global.current_application_address(),
-                        Gtxn[0].amount() >= Int(1000000) # 1 ALGO Fixed Collateral
+                        Gtxn[0].amount() >= Int(1000000)
                     )
                 ),
                 App.localPut(Txn.sender(), collateral_key, Gtxn[0].amount())
             ])
         ),
-        
-        # Record Borrow
-        App.localPut(Txn.sender(), item_key, Txn.application_args[1]),
-        App.localPut(Txn.sender(), borrow_time_key, Global.latest_timestamp()),
         
         Return(Int(1))
     ])
@@ -118,10 +100,8 @@ def approval_program():
         [Txn.on_completion() == OnComplete.NoOp, handle_noop],
     )
 
-def clear_state_program():
-    return Return(Int(1))
-
 if __name__ == "__main__":
-    with open("asset_escrow.teal", "w") as f:
+    with open("debug_escrow.teal", "w") as f:
         compiled = compileTeal(approval_program(), mode=Mode.Application, version=6)
         f.write(compiled)
+        print("Compilation Successful!")

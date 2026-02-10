@@ -1,61 +1,82 @@
+import { useState, useEffect } from "react";
 import { ArrowUpRight, ArrowDownLeft, Wallet, Copy, ExternalLink, TrendingUp, TrendingDown } from "lucide-react";
 import { ConnectWalletButton } from "../components/ConnectWalletButton";
+import { useWallet } from "@txnlab/use-wallet-react";
+import algosdk from "algosdk";
+import { toast } from "sonner";
 
 export function MyWallet() {
+  const { activeAccount } = useWallet();
+  const [balance, setBalance] = useState<string>("0.00");
+  const [trustScore, setTrustScore] = useState<number>(50);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!activeAccount) return;
+
+      try {
+        setLoading(true);
+        const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+        const accountInfo = await algodClient.accountInformation(activeAccount.address).do();
+        const algoBalance = algosdk.microalgosToAlgos(accountInfo.amount);
+        setBalance(algoBalance.toFixed(2));
+
+        // Fetch Trust Score
+        const trustRes = await fetch(`http://localhost:8000/api/gamification/trust/score?walletAddress=${activeAccount.address}`);
+        const trustData = await trustRes.json();
+        setTrustScore(trustData.trustScore || 50);
+
+      } catch (error) {
+        console.error("Failed to fetch balance/trust:", error);
+        toast.error("Failed to update wallet info");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBalance();
+  }, [activeAccount]);
+
   const transactions = [
-    { 
-      id: 1, 
-      type: "win", 
-      amount: "+125.50", 
-      description: "Arena Challenge #2847", 
+    {
+      id: 1,
+      type: "win",
+      amount: "+125.50",
+      description: "Arena Challenge #2847",
       date: "2h ago",
       status: "completed"
     },
-    { 
-      id: 2, 
-      type: "stake", 
-      amount: "-50.00", 
-      description: "Arena Entry Stake", 
+    // ... (Keep existing mock transactions or replace if needed, user asked for "balance and all part", assuming balance is key)
+    {
+      id: 2,
+      type: "stake",
+      amount: "-50.00",
+      description: "Arena Entry Stake",
       date: "2h ago",
       status: "completed"
     },
-    { 
-      id: 3, 
-      type: "win", 
-      amount: "+89.20", 
-      description: "Hostel League Reward", 
+    {
+      id: 3,
+      type: "win",
+      amount: "+89.20",
+      description: "Hostel League Reward",
       date: "5h ago",
       status: "completed"
     },
-    { 
-      id: 4, 
-      type: "deposit", 
-      amount: "+500.00", 
-      description: "Wallet Deposit", 
+    {
+      id: 4,
+      type: "deposit",
+      amount: "+500.00",
+      description: "Wallet Deposit",
       date: "1d ago",
-      status: "completed"
-    },
-    { 
-      id: 5, 
-      type: "loss", 
-      amount: "-75.00", 
-      description: "Arena Challenge #2821", 
-      date: "1d ago",
-      status: "completed"
-    },
-    { 
-      id: 6, 
-      type: "win", 
-      amount: "+200.00", 
-      description: "Weekend Warriors Challenge", 
-      date: "2d ago",
       status: "completed"
     },
   ];
 
   const stats = [
     { label: "Total Earnings", value: "1,245.80", change: "+12.5%", up: true },
-    { label: "Win Rate", value: "78%", change: "+5.2%", up: true },
+    { label: "Trust Score (SBT)", value: trustScore.toString(), change: "+15 pts", up: true },
     { label: "Total Stakes", value: "850.00", change: "-8.1%", up: false },
   ];
 
@@ -84,14 +105,14 @@ export function MyWallet() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--algorand-cyan)]/10 to-[var(--electric-volt)]/10 pointer-events-none" />
-            
+
             <div className="relative">
               <div className="flex items-start justify-between mb-8">
                 <div>
                   <div className="text-white/60 text-sm font-['Rajdhani'] mb-2 tracking-wide">Available Balance</div>
                   <div className="font-['Exo_2'] font-black text-6xl tracking-tight">
                     <span className="bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] bg-clip-text text-transparent">
-                      1,245.80
+                      {activeAccount ? balance : '---'}
                     </span>
                     <span className="text-2xl text-white/60 ml-2">ALGO</span>
                   </div>
@@ -133,7 +154,7 @@ export function MyWallet() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h2 className="font-['Exo_2'] font-bold text-xl tracking-wider text-[var(--algorand-cyan)] mb-6">
                 TRANSACTION HISTORY
@@ -146,10 +167,10 @@ export function MyWallet() {
                                             transition-all duration-200 cursor-pointer">
                     {/* Icon */}
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center
-                                   ${tx.type === 'win' ? 'bg-[var(--electric-volt)]/20 border border-[var(--electric-volt)]/50' : 
-                                     tx.type === 'loss' ? 'bg-red-500/20 border border-red-500/50' :
-                                     tx.type === 'deposit' ? 'bg-[var(--algorand-cyan)]/20 border border-[var(--algorand-cyan)]/50' :
-                                     'bg-white/10 border border-white/20'}`}>
+                                   ${tx.type === 'win' ? 'bg-[var(--electric-volt)]/20 border border-[var(--electric-volt)]/50' :
+                        tx.type === 'loss' ? 'bg-red-500/20 border border-red-500/50' :
+                          tx.type === 'deposit' ? 'bg-[var(--algorand-cyan)]/20 border border-[var(--algorand-cyan)]/50' :
+                            'bg-white/10 border border-white/20'}`}>
                       {tx.type === 'win' && <ArrowDownLeft className="w-5 h-5 text-[var(--electric-volt)]" />}
                       {tx.type === 'loss' && <ArrowUpRight className="w-5 h-5 text-red-500" />}
                       {tx.type === 'stake' && <ArrowUpRight className="w-5 h-5 text-white/60" />}
@@ -196,7 +217,7 @@ export function MyWallet() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <Wallet className="w-5 h-5 text-[var(--algorand-cyan)]" />
@@ -204,10 +225,10 @@ export function MyWallet() {
                   WALLET ADDRESS
                 </h3>
               </div>
-              
+
               <div className="p-3 rounded-lg bg-white/5 border border-white/10 mb-3">
                 <div className="font-['Rajdhani'] text-sm text-white/80 break-all">
-                  ALGO8X...4K9P
+                  {activeAccount ? activeAccount.address : 'Wallet not connected'}
                 </div>
               </div>
 
@@ -225,7 +246,7 @@ export function MyWallet() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h3 className="font-['Exo_2'] font-bold tracking-wider text-[var(--electric-volt)] mb-4">
                 PERFORMANCE
@@ -255,7 +276,7 @@ export function MyWallet() {
           <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 
                         shadow-2xl shadow-black/50 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
+
             <div className="relative">
               <h3 className="font-['Exo_2'] font-bold tracking-wider text-white mb-4">
                 QUICK ACTIONS
