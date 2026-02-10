@@ -1,14 +1,15 @@
 # 🚀 PushBet: The Decentralized Campus Vitality Protocol
 ### Built on Algorand | Powered by AI | Verified by Community
 
-> **Hackathon Submission:** "Hackspiration '26" (Tracks: AI & Automation + Future of Finance)
+> **Hackathon Submission:** "Hackspiration '26"
+> **Tracks:** AI & Automation + Future of Finance
 > **Vision:** A trustless, self-governing ecosystem for campus life.
 
 PushBet is not just an app; it is a **Decentralized Protocol** that gamifies and verifies student activities (Fitness, Commute, Lending) to build an on-chain **Reputation Score**.
 
 ---
 
-## 🌟 The Core Innovation: "Trust Score Protocol"
+## 💡 The Core Innovation: "Trust Score Protocol"
 
 Most campus apps are isolated silos. PushBet unifies them into a single **On-Chain Identity**.
 
@@ -25,6 +26,30 @@ Most campus apps are isolated silos. PushBet unifies them into a single **On-Cha
 
 ---
 
+## 🔥 Innovations (Why We Win)
+
+### 1. **Zero-Collateral DeFi (Based on AI Reputation)**
+We solve the "Over-collateralization" problem in DeFi. Instead of locking assets, students stake their **Reputation**.
+*   **Tech:** Our Lending Contract reads the **Local State (Trust Score)** from the Trust Protocol.
+*   **Logic:** `If Trust_Score > 50: Collateral = 0`. This is true **Identity-Based DeFi**.
+
+### 2. **"Proof of Burn" Calorie Token**
+Turn sweat into a deflationary asset.
+*   **Mechanism:** AI verifies pushups -> Mints `$BURN` tokens.
+*   **Utility:** Tokens must be *burned* to redeem campus rewards, creating a circular economy.
+
+### 3. **Atomic Marketplace (Zero-Risk Trading)**
+A trustless P2P exchange for textbooks and equipment.
+*   **Tech:** Uses **Algorand Atomic Transfers**.
+*   **Innovation:** The Payment and Asset Transfer happen in the *same* atomic group. It is mathematically impossible to get scammed.
+
+### 4. **Cross-Chain Identity (State Proofs)**
+Your reputation travels with you.
+*   **Tech:** **Algorand State Proofs (ASP)**.
+*   **Future:** Export your high Trust Score as a cryptographic proof to get loans on Ethereum or Solana.
+
+---
+
 ## 💎 Key Features & Tracks
 
 ### 🧘 Track 2: AI & Automation
@@ -37,7 +62,7 @@ Most campus apps are isolated silos. PushBet unifies them into a single **On-Cha
 *   **Tech:** **Gemini AI Vision** + **Geolocation**.
 *   **Action:** Verifies you are sharing a ride (bus/carpool) to campus.
 *   **Result:** Smart Contract releases payout to driver & mints "Eco" points.
-*   **Testnet App ID:** `755284243`
+*   **Testnet App ID:** `755297342`
 
 #### **C. Asset Lending (Trustless Borrowing)**
 *   **Tech:** **Coco-SSD (TensorFlow)** object detection.
@@ -45,15 +70,10 @@ Most campus apps are isolated silos. PushBet unifies them into a single **On-Cha
 *   **Result:** Auto-refunds collateral.
 
 ### 💰 Track 1: Future of Finance
-#### **D. Atomic Marketplace (Zero-Risk Trading)**
-*   **Tech:** **Algorand Atomic Transfers (Group Txns)**.
-*   **Action:** Buy/Sell Textbooks, Notes, or Lab Coats peer-to-peer.
-*   **Innovation:** Payment and Item Transfer happen in the *same* atomic group. If one fails, both fail. **Zero scams possible.**
-
-#### **E. Cross-Chain Identity (State Proofs)**
-*   **Tech:** **Algorand State Proofs (ASP)**.
-*   **Action:** Export your high "Trust Score" as a cryptographic proof.
-*   **Vision:** Use your Algorand reputation to get loans on other chains (Ethereum/Solana).
+#### **D. Atomic Marketplace**
+*   **Tech:** **Algorand Atomic Transfers**.
+*   **Action:** Peer-to-peer trading of campus goods.
+*   **Testnet App ID:** `755297353`
 
 ---
 
@@ -61,7 +81,7 @@ Most campus apps are isolated silos. PushBet unifies them into a single **On-Cha
 
 ```mermaid
 graph TD
-    User[Student Wallet] -->|Signs Txn| App[PushBet DApp]
+    User[Student Wallet] -->|Signs Txn| App[CAMPUS VITALITY PROTOCOL]
     
     subgraph "AI Verification Layer"
         App -->|Video Stream| MediaPipe[Fitness AI]
@@ -118,15 +138,15 @@ VITE_GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 ```bash
 npm run dev
 ```
-Open **http://localhost:5173** (or the port shown in terminal).
+Open **http://localhost:5174** (or the port shown in terminal).
 
 ---
 
 ## 🧪 How to Test (Demo Flow)
 
-1.  **Commute:** Go to "Commute Arena" -> "Create Account" -> "I Need a Ride" -> "Start Trip" -> "Verify Arrival" (Gemini AI).
-2.  **Lending:** Go to "Asset Arena" -> "Lender Mode" -> "Scan Item" (TensorFlow) -> "Borrower Mode" -> "Scan QR".
-3.  **Fitness:** Go to "Arena" -> "Place Stake" -> Do Pushups (MediaPipe).
+1.  **Commute:** Go to "Commute Arena" -> "Create Student Account" -> "I Need a Ride" -> "Start Trip" -> "Verify Arrival" (Gemini AI).
+2.  **Lending:** Go to "Asset Arena" -> "Borrow Item". If your Trust Score is high (simulated), collateral is 0 ALGO!
+3.  **Profile:** Go to "Profile" (Sidebar) to see your **Dynamic Identity NFT**.
 
 ---
 
@@ -134,8 +154,9 @@ Open **http://localhost:5173** (or the port shown in terminal).
 
 | Contract | Testnet App ID | Description |
 | :--- | :--- | :--- |
-| **Commute** | `755284243` | Handles ride escrow, driver registry, and payouts. |
-| **Asset** | *(Deployed per item)* | Manages collateral lock and return logic. |
+| **Trust Score** | `755297339` | Stores User Reputation (Local State). |
+| **Commute** | `755297342` | Handles ride escrow & payouts. |
+| **Marketplace** | `755297353` | P2P Trading via Atomic Transfers. |
 
 ---
 
