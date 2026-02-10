@@ -24,7 +24,7 @@ L.Icon.Default.mergeOptions({
 
 const VIT_COORDS = { lat: 18.4636, lng: 73.8682 }; // VIT Pune Coordinates
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const APP_ID = 755284243; // Hardcoded App ID for seamless UX
+const APP_ID = 755297342; // Live Testnet App ID
 
 // Mock Drivers Data around VIT
 const MOCK_DRIVERS = [
@@ -53,7 +53,7 @@ function haversineDistance(coords1: { lat: number, lng: number }, coords2: { lat
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
     const map = useMap();
     useEffect(() => {
-        map.setView([lat, lng]);
+        if (map) map.setView([lat, lng]);
     }, [lat, lng, map]);
     return null;
 }
@@ -160,12 +160,17 @@ export function CommuteArena() {
 
             await algodClient.sendRawTransaction(filteredSignedTxns).do();
             await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 4);
-
+            
             setIsOptedIn(true);
             toast.success("Account Created Successfully!");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            toast.error("Account Creation Failed");
+            if (e.message && e.message.includes("already opted in")) {
+                setIsOptedIn(true);
+                toast.success("Account Restored (Already Registered)");
+            } else {
+                toast.error("Account Creation Failed");
+            }
         }
     };
 
@@ -413,7 +418,7 @@ export function CommuteArena() {
 
                         <button
                             onClick={handleCreateAccount}
-                            className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 
+                            className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500
                                      text-white text-lg font-bold rounded-full shadow-lg hover:shadow-pink-500/50 hover:scale-105 transition-all"
                         >
                             Create Student Account
@@ -507,7 +512,7 @@ export function CommuteArena() {
                                 onClick={startTrip}
                                 disabled={!driverAddr}
                                 className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed
-                                         hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl 
+                                         hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl
                                          flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
                             >
                                 START TRIP (1 ALGO DEPOSIT) <FaArrowRight />

@@ -20,16 +20,14 @@ def approval_program():
     asset_id_arg = Btoi(Txn.application_args[1])
     price_arg = Btoi(Txn.application_args[2])
     box_name = get_box_name(asset_id_arg)
+    
+    # Check existence
+    existing_box = App.box_get(box_name)
 
     list_item = Seq([
         # Verify Group Size
         Assert(Global.group_size() == Int(2)),
         
-        # Verify Payment of Box MBR (Minimum Balance Requirement) handled by frontend/wallet 
-        # (Sender must cover MBR in a separate txn or contract must have funds)
-        # For this demo, we assume contract is funded or sender sends extra algo.
-        # Strict mode: Check Gtxn[0] is Payment to App >= MBR.
-
         # Verify Asset Transfer
         Assert(Gtxn[0].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[0].xfer_asset() == asset_id_arg),
@@ -38,7 +36,8 @@ def approval_program():
         Assert(Gtxn[0].sender() == Txn.sender()),
 
         # Check if Box exists (Prevent overwrite)
-        Assert(App.box_length(box_name).hasValue() == Int(0)),
+        existing_box,
+        Assert(Not(existing_box.hasValue())),
 
         # Create Box and Store [Seller, Price]
         App.box_put(box_name, Concat(Txn.sender(), Itob(price_arg))),
@@ -58,6 +57,9 @@ def approval_program():
     price_val = Btoi(Extract(box_data.value(), Int(32), Int(8)))
 
     buy_item = Seq([
+        # Run Box Get
+        box_data,
+        
         # Verify Box Exists
         Assert(box_data.hasValue()),
 
@@ -80,8 +82,7 @@ def approval_program():
         InnerTxnBuilder.Submit(),
 
         # Delete Box (Free up MBR)
-        # In production, MBR refund logic needed here
-        App.box_delete(buy_box_name),
+        Assert(App.box_delete(buy_box_name)),
         
         Approve()
     ])
@@ -95,6 +96,7 @@ def approval_program():
     delist_seller = Extract(delist_data.value(), Int(0), Int(32))
 
     delist_item = Seq([
+        delist_data,
         Assert(delist_data.hasValue()),
         
         # Only Original Seller can delist
@@ -112,7 +114,7 @@ def approval_program():
         InnerTxnBuilder.Submit(),
 
         # Delete Box
-        App.box_delete(delist_box_name),
+        Assert(App.box_delete(delist_box_name)),
         
         Approve()
     ])

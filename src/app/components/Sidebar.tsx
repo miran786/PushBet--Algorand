@@ -1,4 +1,4 @@
-import { Trophy, Users, Wallet, Medal, Shield } from "lucide-react";
+import { Trophy, Users, Wallet, Medal, Shield, User } from "lucide-react";
 import { FaGavel, FaStore } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
@@ -10,6 +10,7 @@ export function Sidebar() {
     { icon: Users, label: "Hostel League", path: "/hostel-league" },
     { icon: Wallet, label: "My Wallet", path: "/wallet" },
     { icon: Medal, label: "Leaderboard", path: "/leaderboard" },
+    { icon: User, label: "Profile", path: "/profile" }, // New Profile
     { icon: FaGavel, label: "Validator", path: "/validator" }, // Validator Node
     { icon: FaStore, label: "Market", path: "/marketplace" }, // Marketplace
     { icon: Shield, label: "Admin", path: "/admin" },

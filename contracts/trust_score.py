@@ -90,5 +90,6 @@ def clear_state_program():
 
 if __name__ == "__main__":
     with open("trust_score.teal", "w") as f:
-        compiled = compileTeal(approval_program(), mode=Mode.Application, version=6)
+        # Upgrade to Version 8
+        compiled = compileTeal(approval_program(), mode=Mode.Application, version=8)
         f.write(compiled)
