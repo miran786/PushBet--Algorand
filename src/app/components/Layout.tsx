@@ -1,15 +1,16 @@
-import { Outlet } from "react-router";
+import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { ConnectWalletButton } from "./ConnectWalletButton";
 
 export function Layout() {
   return (
     <div className="dark min-h-screen bg-[var(--deep-charcoal)] font-['Rajdhani'] overflow-hidden">
       {/* Gradient background */}
       <div className="fixed inset-0 bg-gradient-to-br from-[var(--deep-charcoal)] via-[var(--matte-black)] to-[var(--deep-charcoal)]" />
-      
+
       {/* Cyber grid background */}
       <div className="fixed inset-0 cyber-grid opacity-30" />
-      
+
       {/* Ambient glow effects */}
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-[var(--algorand-cyan)] opacity-10 blur-[120px] rounded-full animate-pulse" />
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[var(--electric-volt)] opacity-10 blur-[120px] rounded-full animate-pulse" />
@@ -20,6 +21,10 @@ export function Layout() {
 
       {/* Main Content */}
       <div className="relative ml-20 p-8 min-h-screen">
+        {/* Global Wallet Connection */}
+        <div className="absolute top-8 right-8 z-50">
+          <ConnectWalletButton />
+        </div>
         <Outlet />
       </div>
 

@@ -1,0 +1,39 @@
+# Project Checklist
+
+## Phase 1: Fitness & Staking
+1. [ ] Implement fitness feature with MediaPipe integration.
+2. [ ] Test fitness movement detection and rep counting.
+3. [ ] Implement basic staking transaction (Self-transaction on Testnet).
+
+## Phase 2: Asset Lending
+4. [ ] Design & Deploy Asset Lending Smart Contract (PyTeal).
+    - [ ] Allow "Optional Collateral" flag.
+    - [ ] Implement `borrow` and `return` methods.
+5. [ ] Implement AI Asset Verification.
+    - [ ] Integrate Object Detection model (e.g., Coco-SSD) to verify asset presence.
+    - [ ] Create "Scan Asset" UI flow for Lenders.
+6. [ ] Build Asset Arena UI.
+    - [ ] List available assets.
+    - [ ] Borrow/Lend modal with collateral toggle.
+7. [ ] Verify Asset Lending flow on Testnet.
+
+## Phase 3: Commute Pool (Ride Sharing)
+8. [ ] Design & Deploy Commute Smart Contract.
+    - [ ] Escrow logic for Rider collateral.
+    - [ ] Reward distribution logic for Drivers.
+9. [ ] Implement Role Selection & Matching.
+    - [ ] UI for "I am a Driver" vs "I need a Ride".
+    - [ ] Integrate Map Interface (Leaflet) to show user locations.
+    - [ ] Calculate Haversine distance between users.
+    - [ ] Show list of available Drivers/Riders sorted by distance.
+10. [ ] Implement Trip Logic.
+    - [ ] Rider deposits collateral (if requested) to start trip.
+    - [ ] "End Trip" button triggers contract to release collateral & pay Driver.
+11. [ ] Verify Commute Pool flow on Testnet.
+
+## Phase 4: Final Polish
+12. [ ] Comprehensive System Testing (Fitness + Lending + Commute).
+13. [ ] UI/UX Polish (Animations, Transitions, Error handling).
+
+## Testing Note
+14. [ ] Stake ONLY 1 ALGO to complete the task.

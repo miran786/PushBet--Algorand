@@ -1,5 +1,5 @@
 import { Trophy, Users, Wallet, Medal, Shield } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 
 export function Sidebar() {
   const location = useLocation();
