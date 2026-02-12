@@ -6,7 +6,7 @@
 > **Tracks:** AI & Automation + Future of Finance
 > **Vision:** A trustless, self-governing ecosystem for campus life.
 
-CVP is not just an app; it is a **Decentralized Protocol** that gamifies and verifies student activities (Fitness, Commute, Lending) to build an on-chain **Reputation Score**.
+CVP is not just an app; it is a **Decentralized Protocol** that gamifies and verifies student activities (Fitness, Commute, Lending) to build an on-chain **Reputation Score** — and now features an **AI-Governed Marketplace** where any human need becomes an instant, verifiable smart contract.
 
 ---
 
@@ -19,7 +19,7 @@ CVP is not just an app; it is a **Decentralized Protocol** that gamifies and ver
 
 ### 2. Effective Use of Algorand Features
 We don't just use Algorand for payments; we leverage its unique capabilities:
-*   **Atomic Transfers:** Used in our **Marketplace** to ensure trustless P2P trading (Payment + Asset Transfer happen together or not at all).
+*   **AI-Governed Escrow:** Our **Marketplace** uses Algorand payments as programmable escrow — funds lock on-chain and only release when Gemini AI autonomously verifies proof of fulfillment.
 *   **Box Storage:** Used to store the **Global Order Book** and complex validation data directly on-chain.
 *   **State Proofs (Planned):** Designed to export the "Trust Score" as a cross-chain identity proof.
 *   **Low Latency (3.3s):** Essential for "Real-Time" verification in the Fitness Arena.
@@ -58,20 +58,33 @@ Most campus apps are isolated silos. CVP unifies them into a single **On-Chain I
 
 ## 🔥 Innovations (Why We Win)
 
-### 1. **Zero-Collateral DeFi (Based on AI Reputation)**
+### 1. 🧠 **AI-Governed Marketplace — The Sky Is The Limit**
+> *"What if any student need — no matter how unique — could become a self-executing smart contract in seconds?"*
+
+This is not a marketplace. This is an **AI-powered autonomous economy.** Students don't browse listings — they **describe any need in plain English**, and Gemini AI instantly:
+1.  **Understands** the request and classifies it (lost items → notes → errands → tutoring → anything)
+2.  **Generates smart contract terms** — specific, verifiable proof requirements tailored to that exact need
+3.  **Locks payment** on Algorand as programmable escrow
+4.  **Verifies proof autonomously** — when someone fulfills the need and submits evidence (photos, descriptions), Gemini AI acts as a **decentralized oracle**, analyzing the proof against the contract terms
+5.  **Releases payment instantly** — no human approval, no disputes, no middlemen
+
+*   **Why it's limitless:** There are no categories, no templates, no pre-built forms. A student can say *"find my lost blue notebook near the library"* or *"explain quantum entanglement to me in Hindi"* or *"pick up my laundry from Block C"* — and the AI builds a unique, enforceable contract for each one. **If you can describe it, the AI can govern it.**
+*   **Tech Stack:** Gemini 2.0 Flash (term generation + proof verification) → Algorand (escrow payments) → MongoDB (state management)
+*   **The Oracle Pattern:** Gemini AI acts as a trustless verification oracle — the same pattern used by Chainlink, but powered by multimodal AI that can verify *photos, text, and context* simultaneously.
+
+> 💡 **Think Uber, but for literally anything** — and the entire dispute resolution, payment, and verification layer is replaced by AI + blockchain.
+
+---
+
+### 2. **Zero-Collateral DeFi (Based on AI Reputation)**
 We solve the "Over-collateralization" problem in DeFi. Instead of locking assets, students stake their **Reputation**.
 *   **Tech:** Our Lending Contract reads the **Local State (Trust Score)** from the Trust Protocol.
 *   **Logic:** `If Trust_Score > 50: Collateral = 0`. This is true **Identity-Based DeFi**.
 
-### 2. **"Proof of Burn" Tokenomics**
+### 3. **"Proof of Burn" Tokenomics**
 Turn sweat into a deflationary asset.
 *   **Mechanism:** AI verifies pushups -> Mints `$BURN` tokens.
 *   **Utility:** Tokens must be *burned* to redeem campus rewards, creating a circular economy.
-
-### 3. **Atomic Marketplace (Zero-Risk Trading)**
-A trustless P2P exchange for textbooks and equipment.
-*   **Tech:** Uses **Algorand Atomic Transfers**.
-*   **Innovation:** The Payment and Asset Transfer happen in the *same* atomic group. It is mathematically impossible to get scammed.
 
 ### 4. **Cross-Chain Identity (State Proofs)**
 Your reputation travels with you.
@@ -105,9 +118,11 @@ Allow students to crowd-fund campus infrastructure directly.
 *   **Result:** Auto-refunds collateral.
 
 ### 💰 Track 1: Future of Finance
-#### **D. Atomic Marketplace**
-*   **Tech:** **Algorand Atomic Transfers**.
-*   **Action:** Peer-to-peer trading of campus goods.
+#### **D. AI-Governed Marketplace (The Limitless Exchange)**
+*   **Tech:** **Gemini 2.0 Flash** (AI Oracle) + **Algorand Escrow Payments**.
+*   **Action:** Describe ANY need → AI builds contract terms → someone fulfills it → AI verifies proof → payment auto-releases.
+*   **Innovation:** No fixed categories, no templates — the AI governs an infinite design space of human needs.
+*   **Examples:** *"Find my lost keys"*, *"Need 2024 calculus notes"*, *"Deliver food to my dorm"*, *"Tutor me in Python for 1 hour"*
 *   **Testnet App ID:** `755297353`
 
 #### **E. Hyper-Local Crowd-Staking (The Canteen DAO)**
@@ -121,22 +136,25 @@ Allow students to crowd-fund campus infrastructure directly.
 
 ```mermaid
 graph TD
-    User[Student Wallet] -->|Signs Txn| App[CAMPUS VITALITY PROTOCOL]
+    User["Student Wallet"] -->|Signs Txn| App["CAMPUS VITALITY PROTOCOL"]
     
-    subgraph "AI Verification Layer"
-        App -->|Video Stream| MediaPipe[Fitness AI]
-        App -->|Image Upload| Gemini[Commute AI]
-        App -->|Object Scan| TensorFlow[Lending AI]
+    subgraph "AI Verification Layer (Oracle)"
+        App -->|Video Stream| MediaPipe["Fitness AI"]
+        App -->|Image Upload| Gemini["Commute AI"]
+        App -->|Object Scan| TensorFlow["Lending AI"]
+        App -->|Any Need| MarketAI["Marketplace AI (Gemini 2.0)"]
     end
     
     subgraph "Algorand Blockchain (Testnet)"
-        MediaPipe -->|Verified Data| SC_Fit[Fitness Contract]
-        Gemini -->|Verified Data| SC_Com[Commute Contract]
-        TensorFlow -->|Verified Data| SC_Lend[Lending Contract]
+        MediaPipe -->|Verified Data| SC_Fit["Fitness Contract"]
+        Gemini -->|Verified Data| SC_Com["Commute Contract"]
+        TensorFlow -->|Verified Data| SC_Lend["Lending Contract"]
+        MarketAI -->|Generate Terms + Verify Proof| SC_Market["AI Marketplace Escrow"]
         
-        SC_Fit -->|Update State| Trust[Trust Score Contract]
+        SC_Fit -->|Update State| Trust["Trust Score Contract"]
         SC_Com -->|Update State| Trust
         SC_Lend -->|Read/Update| Trust
+        SC_Market -->|Auto-Release Payment| User
         
         Trust -->|Gatekeeper| SC_Lend
     end
@@ -186,9 +204,10 @@ Open **http://localhost:5174** (or the port shown in terminal).
 
 ## 🧪 How to Test (Demo Flow)
 
-1.  **Commute:** Go to "Commute Arena" -> "Create Student Account" -> "I Need a Ride" -> "Start Trip" -> "Verify Arrival" (Gemini AI).
-2.  **Lending:** Go to "Asset Arena" -> "Borrow Item". If your Trust Score is high (simulated), collateral is 0 ALGO!
-3.  **Profile:** Go to "Profile" (Sidebar) to see your **Dynamic Identity NFT**.
+1.  **AI Marketplace:** Go to "Marketplace" → Click "Post a Need" → Type any need (e.g. *"need 2024 calculus notes"*) → Watch AI generate contract terms → Post it. Then switch to "Browse Needs" to see it live.
+2.  **Commute:** Go to "Commute Arena" → "I Need a Ride" → "Start Trip" → "Verify Arrival" (Gemini AI).
+3.  **Lending:** Go to "Asset Arena" → "Borrow Item". If your Trust Score is high (simulated), collateral is 0 ALGO!
+4.  **Profile:** Go to "Profile" (Sidebar) to see your **Dynamic Identity NFT**.
 
 ---
 
@@ -198,7 +217,7 @@ Open **http://localhost:5174** (or the port shown in terminal).
 | :--- | :--- | :--- |
 | **Trust Score** | `755297339` | Stores User Reputation (Local State). |
 | **Commute** | `755297342` | Handles ride escrow & payouts. |
-| **Marketplace** | `755297353` | P2P Trading via Atomic Transfers. |
+| **AI Marketplace** | `755297353` | AI-Governed Escrow — Gemini generates terms & verifies proof. |
 
 ---
 
