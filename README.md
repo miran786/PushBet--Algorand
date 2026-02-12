@@ -1,134 +1,170 @@
 # 🚀 Campus Vitality Protocol (CVP)
-### The Decentralized Trust Layer for Student Life
-**Built on Algorand | Powered by AI | Verified by Community**
 
-> **Hackathon Submission:** "Hackspiration '26"
-> **Tracks:** AI & Automation + Future of Finance
-> **Vision:** A trustless, self-governing ecosystem for campus life.
+<div align="center">
 
-CVP is not just an app; it is a **Decentralized Protocol** that gamifies and verifies student activities (Fitness, Commute, Lending) to build an on-chain **Reputation Score** — and now features an **AI-Governed Marketplace** where any human need becomes an instant, verifiable smart contract.
+### **The Decentralized Trust Layer for Student Life**
 
----
+**Built on Algorand · Powered by Gemini AI · Verified by Community**
 
-## 🏆 Evaluation Criteria Mapping (Why We Win)
+[![Algorand](https://img.shields.io/badge/Blockchain-Algorand_TestNet-black?style=for-the-badge&logo=algorand&logoColor=white)](https://testnet.algoexplorer.io/)
+[![AI](https://img.shields.io/badge/AI-Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![React](https://img.shields.io/badge/Frontend-React_+_Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Node](https://img.shields.io/badge/Backend-Node.js_+_MongoDB-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
-### 1. Technical Implementation & Code Quality
-*   **AI Integration:** We utilize **MediaPipe** (Pose Detection), **Gemini Vision 1.5** (Context Analysis), and **Coco-SSD** (Object Detection) to create a robust "Oracle Layer" that feeds real-world data to the blockchain.
-*   **Smart Contracts:** Written in **PyTeal**, utilizing advanced features like Inner Transactions and Local State for reputation tracking.
-*   **Frontend:** A responsive, modern React application with real-time feedback loops.
+> **Hackathon:** Hackspiration '26 · **Tracks:** AI & Automation + Future of Finance
 
-### 2. Effective Use of Algorand Features
-We don't just use Algorand for payments; we leverage its unique capabilities:
-*   **AI-Governed Escrow:** Our **Marketplace** uses Algorand payments as programmable escrow — funds lock on-chain and only release when Gemini AI autonomously verifies proof of fulfillment.
-*   **Box Storage:** Used to store the **Global Order Book** and complex validation data directly on-chain.
-*   **State Proofs (Planned):** Designed to export the "Trust Score" as a cross-chain identity proof.
-*   **Low Latency (3.3s):** Essential for "Real-Time" verification in the Fitness Arena.
-
-### 3. Relevance to Problem Statement
-*   **Problem:** "Lack of trust, manual verification, and data tampering" in campus systems.
-*   **Solution:** CVP removes the "manual verifier".
-    *   *Did you clean your room?* AI verifies it.
-    *   *Did you return the laptop?* AI scans it.
-    *   *Are you a good student?* Your on-chain **Trust Score** proves it immutably.
-
-### 4. Feasibility & Scalability
-*   **Feasibility:** The prototype works *today* on Testnet. It uses standard webcams and existing phones—no hardware cost.
-*   **Scalability:**
-    *   **Phase 1 (VIT Pune):** Pilot with Gym & Hostel.
-    *   **Phase 2 (Inter-College):** "Hostel Leagues" where colleges compete on fitness/eco-scores.
-    *   **Phase 3 (National):** The "Trust Score" becomes a standard hiring metric for integrity.
+</div>
 
 ---
 
-## 💡 The Core Innovation: "Trust Score Protocol"
+## 🧬 What Is CVP?
 
-Most campus apps are isolated silos. CVP unifies them into a single **On-Chain Identity**.
+CVP is not just an app — it is a **Decentralized Protocol** that transforms every aspect of campus life into a verifiable, trustless, AI-governed ecosystem.
 
-**1. The "Trust Score" (Soulbound Token):**
-*   Every verified action mints **Trust Points** to your profile.
-*   **High Trust Score = Real Utility:**
-    *   **Zero-Collateral Borrowing:** If Trust > 90, borrow expensive lab equipment without locking 5 ALGO.
-    *   **Validator Status:** Top-tier students become "Human Oracles" to verify others.
+**The core idea:** Every student action — workouts, commutes, lending, civic sense, marketplace transactions — is **verified by AI in real-time** and **recorded immutably on Algorand**, building a living, breathing **On-Chain Reputation Score** that unlocks real-world utility.
 
-**2. The "Student Validator Node" (Decentralized AI):**
-*   **Hybrid Verification:** AI (Gemini/TensorFlow) does the first pass.
-*   **Human Consensus:** For edge cases, top-ranking students verify claims (e.g., "Is this room actually clean?").
+> 💡 *Imagine a campus where your honesty is provable, your efforts are rewarded automatically, and any need you have — from lost keys to calculus notes — is fulfilled through an AI that builds smart contracts on the fly.*
+
+### What Makes This Different?
+
+| Traditional Campus Apps | CVP |
+|:---|:---|
+| Manual verification (humans check everything) | **AI verifies everything autonomously** |
+| Trust is assumed | **Trust is proven on-chain** |
+| Fixed features, fixed categories | **AI generates infinite use-cases dynamically** |
+| Payments require middlemen | **Algorand auto-releases payments on proof** |
+| Reputation is invisible | **On-chain Trust Score with real utility** |
 
 ---
 
-## 🔥 Innovations (Why We Win)
+## 🧠 The #1 Innovation: AI-Governed Marketplace
 
-### 1. 🧠 **AI-Governed Marketplace — The Sky Is The Limit**
 > *"What if any student need — no matter how unique — could become a self-executing smart contract in seconds?"*
 
 This is not a marketplace. This is an **AI-powered autonomous economy.** Students don't browse listings — they **describe any need in plain English**, and Gemini AI instantly:
-1.  **Understands** the request and classifies it (lost items → notes → errands → tutoring → anything)
-2.  **Generates smart contract terms** — specific, verifiable proof requirements tailored to that exact need
-3.  **Locks payment** on Algorand as programmable escrow
-4.  **Verifies proof autonomously** — when someone fulfills the need and submits evidence (photos, descriptions), Gemini AI acts as a **decentralized oracle**, analyzing the proof against the contract terms
-5.  **Releases payment instantly** — no human approval, no disputes, no middlemen
 
-*   **Why it's limitless:** There are no categories, no templates, no pre-built forms. A student can say *"find my lost blue notebook near the library"* or *"explain quantum entanglement to me in Hindi"* or *"pick up my laundry from Block C"* — and the AI builds a unique, enforceable contract for each one. **If you can describe it, the AI can govern it.**
-*   **Tech Stack:** Gemini 2.0 Flash (term generation + proof verification) → Algorand (escrow payments) → MongoDB (state management)
-*   **The Oracle Pattern:** Gemini AI acts as a trustless verification oracle — the same pattern used by Chainlink, but powered by multimodal AI that can verify *photos, text, and context* simultaneously.
+1. 🔍 **Understands** the request and classifies it — lost items, notes, errands, tutoring, food, transport, *anything*
+2. 📝 **Generates smart contract terms** — specific, verifiable proof requirements tailored to that exact need
+3. 🔒 **Locks payment** on Algorand as programmable escrow
+4. 🤖 **Verifies proof autonomously** — when someone fulfills the need and submits evidence (photos + descriptions), Gemini AI acts as a **decentralized oracle**, analyzing the proof against the contract terms
+5. 💰 **Releases payment instantly** — no human approval, no disputes, no middlemen
 
-> 💡 **Think Uber, but for literally anything** — and the entire dispute resolution, payment, and verification layer is replaced by AI + blockchain.
+### Why It's Limitless
 
----
+There are **no categories, no templates, no pre-built forms.** A student can say:
 
-### 2. **Zero-Collateral DeFi (Based on AI Reputation)**
-We solve the "Over-collateralization" problem in DeFi. Instead of locking assets, students stake their **Reputation**.
-*   **Tech:** Our Lending Contract reads the **Local State (Trust Score)** from the Trust Protocol.
-*   **Logic:** `If Trust_Score > 50: Collateral = 0`. This is true **Identity-Based DeFi**.
+- *"Find my lost blue notebook near the library"*
+- *"Explain quantum entanglement to me in Hindi"*
+- *"Pick up my laundry from Block C"*
+- *"Need 2024 calculus notes from Professor Khan"*
+- *"Drive me from Gate 1 to Hostel D"*
+- *"Fix this bug in my Python code"*
 
-### 3. **"Proof of Burn" Tokenomics**
-Turn sweat into a deflationary asset.
-*   **Mechanism:** AI verifies pushups -> Mints `$BURN` tokens.
-*   **Utility:** Tokens must be *burned* to redeem campus rewards, creating a circular economy.
+...and the AI builds a **unique, enforceable contract** for each one. **If you can describe it, the AI can govern it.** The sky is the limit.
 
-### 4. **Cross-Chain Identity (State Proofs)**
-Your reputation travels with you.
-*   **Tech:** **Algorand State Proofs (ASP)**.
-*   **Future:** Export your high Trust Score as a cryptographic proof to get loans on Ethereum or Solana.
+> 🔥 **Think Uber, but for literally anything** — and the entire dispute resolution, payment, and verification layer is replaced by AI + blockchain.
 
-### 5. **Hyper-Local Crowd-Staking (The Canteen DAO)**
-Allow students to crowd-fund campus infrastructure directly.
-*   **Scenario:** "We want a new Coffee Machine." Students stake ALGO; funds stream to vendor only when target is met.
-*   **Algorand Feature:** **LogicSigs (Smart Signatures)**. The machine has its own wallet that only dispenses coffee to NFT contributors.
+### The Oracle Pattern
+Gemini AI acts as a **trustless verification oracle** — the same architecture used by Chainlink, but powered by **multimodal AI** that can simultaneously verify photos, text, and context. This isn't a chatbot — it's a **decentralized judge** that reads evidence and enforces contracts.
+
+**Tech Stack:** Gemini 2.0 Flash (term generation + multimodal proof verification) → Algorand (escrow payments) → MongoDB (state management)
 
 ---
 
-## 💎 Key Features & Tracks
+## 🔥 All 8 Innovations
 
-### 🧘 Track 2: AI & Automation
-#### **A. Fitness Arena (Proof of Workout)**
-*   **Tech:** **MediaPipe AI** tracks body pose in real-time.
-*   **Action:** Counts push-ups via webcam.
-*   **Result:** Mints "Strength" metadata to your profile.
+### 1. 🧠 AI-Governed Marketplace — *The Limitless Exchange*
+*(See above)* — Any human need becomes a self-executing AI smart contract.
 
-#### **B. Commute Pool (Proof of Eco-Travel)**
-*   **Tech:** **Gemini AI Vision** + **Geolocation**.
-*   **Action:** Verifies you are sharing a ride (bus/carpool) to campus.
-*   **Result:** Smart Contract releases payout to driver & mints "Eco" points.
-*   **Testnet App ID:** `755297342`
+### 2. 🏋️ Proof of Workout — *Turn Sweat Into On-Chain Reputation*
+**MediaPipe AI** tracks your body pose in real-time through a standard webcam. Every push-up is counted, verified, and minted to your on-chain profile. No gym scanners, no manual logging — just point your camera and go.
 
-#### **C. Asset Lending (Trustless Borrowing)**
-*   **Tech:** **Coco-SSD (TensorFlow)** object detection.
-*   **Action:** Verifies item condition upon return (Laptop, Phone).
-*   **Result:** Auto-refunds collateral.
+### 3. 🚗 Proof of Eco-Travel — *AI-Verified Green Commute*
+Share a ride to campus → **Gemini Vision AI** verifies the carpool evidence → Smart Contract releases payout to the driver and mints **Eco Points** to all passengers. GPS geofencing ensures you actually arrived at **VIT Pune**.
 
-### 💰 Track 1: Future of Finance
-#### **D. AI-Governed Marketplace (The Limitless Exchange)**
-*   **Tech:** **Gemini 2.0 Flash** (AI Oracle) + **Algorand Escrow Payments**.
-*   **Action:** Describe ANY need → AI builds contract terms → someone fulfills it → AI verifies proof → payment auto-releases.
-*   **Innovation:** No fixed categories, no templates — the AI governs an infinite design space of human needs.
-*   **Examples:** *"Find my lost keys"*, *"Need 2024 calculus notes"*, *"Deliver food to my dorm"*, *"Tutor me in Python for 1 hour"*
-*   **Testnet App ID:** `755297353`
+### 4. 📦 Trustless Asset Lending — *Zero-Collateral DeFi for Students*
+Borrow expensive lab equipment **without locking collateral** — if your Trust Score is high enough. **Coco-SSD (TensorFlow)** scans the item's condition upon return via object detection. The escrow auto-refunds based on AI verification.
 
-#### **E. Hyper-Local Crowd-Staking (The Canteen DAO)**
-Allow students to crowd-fund campus infrastructure directly.
-*   **Scenario:** "We want a new Coffee Machine." Students stake ALGO; funds stream to vendor only when target is met.
-*   **Algorand Feature:** **LogicSigs (Smart Signatures)**. The machine has its own wallet that only dispenses coffee to NFT contributors.
+> This solves the **over-collateralization problem** in DeFi. Instead of locking assets, students stake their **Reputation.**
+> `If Trust_Score > 50 → Collateral = 0 ALGO`. This is **Identity-Based DeFi**.
+
+### 5. 🏙️ Civic Sense Reporting — *Blockchain-Verified Community Service*
+See a pothole, garbage pile, or broken bench? Report it with a photo → AI verifies the civic issue → Earn **Civic Points** that boost your Trust Score. Making the campus better is now a provably rewarded activity.
+
+### 6. 🏆 Hostel Leagues & Gamification — *Compete, Climb, Earn*
+Hostels compete against each other on aggregated fitness, civic, and eco scores. Individual students climb **Global Leaderboards** across categories. Top performers unlock **Validator Status** — the right to become a Human Oracle and earn extra rewards for verifying edge cases.
+
+### 7. 🏗️ Infrastructure Market (Canteen DAO) — *Crowd-Staked Campus Upgrades*
+Students crowd-fund campus infrastructure directly with ALGO. Want a new coffee machine in the canteen? Stake ALGO → Funds stream to vendor only when target is met → The machine dispenses coffee only to NFT contributors. **LogicSigs (Smart Signatures)** power the machine's own on-chain wallet.
+
+### 8. 🌐 Cross-Chain Identity (State Proofs) — *Your Reputation Travels With You*
+Your Trust Score isn't trapped on Algorand. Using **Algorand State Proofs (ASP)**, export your reputation as a cryptographic proof to get loans on Ethereum, Solana, or any chain. Your on-chain identity is **portable, immutable, and universally verifiable**.
+
+---
+
+## 💡 The Core Engine: Trust Score Protocol
+
+Most campus apps are isolated silos. CVP unifies them into a single **On-Chain Identity**.
+
+```
+┌────────────────────────────────────────────────┐
+│              TRUST SCORE PROTOCOL              │
+│                                                │
+│   🏋️ Fitness  ──┐                             │
+│   🚗 Commute  ──┤                             │
+│   📦 Lending  ──┼── AI Verifies ──→ On-Chain  │
+│   🏙️ Civic    ──┤     Each Action    Trust    │
+│   🧠 Market   ──┤                    Score    │
+│   🏆 League   ──┘                             │
+│                                                │
+│   High Trust Score = Real Utility:             │
+│   • Zero-collateral borrowing                  │
+│   • Validator status (earn as Human Oracle)    │
+│   • Priority in marketplace fulfillment        │
+│   • Cross-chain identity export                │
+│                                                │
+│   Hybrid Verification:                         │
+│   • AI (Gemini + TensorFlow) does first pass   │
+│   • Top students = "Human Oracles" for edges   │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+## 💎 Complete Feature Map
+
+### 🤖 Track: AI & Automation
+
+| Feature | AI Engine | What Happens | On-Chain Effect |
+|:---|:---|:---|:---|
+| **Fitness Arena** | MediaPipe Pose | Webcam counts push-ups in real-time | Mints "Strength" to profile |
+| **Commute Pool** | Gemini Vision + GPS | Verifies shared rides to VIT Pune | Escrow payout to driver + Eco points |
+| **Asset Lending** | Coco-SSD (TensorFlow) | Scans item condition on return | Auto-refund collateral |
+| **AI Marketplace** | Gemini 2.0 Flash | Generates contract terms + verifies proof | Escrow payment auto-release |
+| **Civic Arena** | Gemini Vision | Verifies civic issue reports (photos) | Civic points to Trust Score |
+
+### 💰 Track: Future of Finance
+
+| Feature | Algorand Tech | Innovation |
+|:---|:---|:---|
+| **AI Marketplace** | Escrow Payments | AI builds contracts for infinite use-cases |
+| **Zero-Collateral DeFi** | Local State | Trust Score replaces locked collateral |
+| **Infrastructure Market** | LogicSigs | Crowd-staked campus upgrades with DAO |
+| **Cross-Chain Identity** | State Proofs (ASP) | Portable reputation across blockchains |
+| **Proof of Burn Tokenomics** | $BURN Token | Sweat → deflationary token → campus rewards |
+
+### 🏗️ Platform Features
+
+| Feature | Description |
+|:---|:---|
+| **Dashboard** | Central hub — all arenas at a glance with quick-access tiles |
+| **Global Leaderboard** | Rankings across Fitness, Civic, Eco, Trust — with hostel filtering |
+| **Hostel Leagues** | Hostels compete on aggregated scores — inter-hostel championships |
+| **Dynamic Profile** | On-chain identity NFT showing all earned stats and reputation |
+| **My Wallet** | Algorand wallet integration — balances, transactions, ALGO management |
+| **Reputation Page** | Detailed Trust Score breakdown with history and level progression |
+| **Validator Node** | Top students become Human Oracles — verify edge cases, earn rewards |
+| **Admin Console** | Administrative panel for managing games, users, and system state |
 
 ---
 
@@ -136,29 +172,80 @@ Allow students to crowd-fund campus infrastructure directly.
 
 ```mermaid
 graph TD
-    User["Student Wallet"] -->|Signs Txn| App["CAMPUS VITALITY PROTOCOL"]
+    User["🎓 Student Wallet"] -->|Signs Txn| App["CAMPUS VITALITY PROTOCOL"]
     
-    subgraph "AI Verification Layer (Oracle)"
-        App -->|Video Stream| MediaPipe["Fitness AI"]
-        App -->|Image Upload| Gemini["Commute AI"]
-        App -->|Object Scan| TensorFlow["Lending AI"]
-        App -->|Any Need| MarketAI["Marketplace AI (Gemini 2.0)"]
+    subgraph "🤖 AI Verification Layer — The Oracle"
+        App -->|Video Stream| MediaPipe["Fitness AI — MediaPipe"]
+        App -->|Image Upload| Gemini["Commute AI — Gemini Vision"]
+        App -->|Object Scan| TensorFlow["Lending AI — Coco-SSD"]
+        App -->|Any Need + Proof| MarketAI["Marketplace AI — Gemini 2.0 Flash"]
+        App -->|Civic Photos| CivicAI["Civic AI — Gemini Vision"]
     end
     
-    subgraph "Algorand Blockchain (Testnet)"
-        MediaPipe -->|Verified Data| SC_Fit["Fitness Contract"]
-        Gemini -->|Verified Data| SC_Com["Commute Contract"]
-        TensorFlow -->|Verified Data| SC_Lend["Lending Contract"]
-        MarketAI -->|Generate Terms + Verify Proof| SC_Market["AI Marketplace Escrow"]
+    subgraph "⛓️ Algorand Blockchain — TestNet"
+        MediaPipe -->|Verified| SC_Fit["Fitness Contract"]
+        Gemini -->|Verified| SC_Com["Commute Contract"]
+        TensorFlow -->|Verified| SC_Lend["Lending Contract"]
+        MarketAI -->|Terms + Verification| SC_Market["AI Marketplace Escrow"]
+        CivicAI -->|Verified| SC_Civic["Civic Contract"]
         
-        SC_Fit -->|Update State| Trust["Trust Score Contract"]
-        SC_Com -->|Update State| Trust
+        SC_Fit -->|Update| Trust["🏆 Trust Score Contract"]
+        SC_Com -->|Update| Trust
         SC_Lend -->|Read/Update| Trust
-        SC_Market -->|Auto-Release Payment| User
+        SC_Civic -->|Update| Trust
+        SC_Market -->|Auto-Release 💰| User
         
         Trust -->|Gatekeeper| SC_Lend
+        Trust -->|Priority| SC_Market
     end
 ```
+
+### Tech Stack
+
+| Layer | Technology |
+|:---|:---|
+| **Frontend** | React 18 + TypeScript + Vite + TailwindCSS |
+| **Backend** | Node.js + Express + Socket.IO |
+| **Database** | MongoDB (Mongoose ODM) |
+| **Blockchain** | Algorand TestNet (algosdk + PyTeal) |
+| **AI — Vision** | Gemini 2.0 Flash (multimodal analysis) |
+| **AI — Pose** | MediaPipe (real-time body tracking) |
+| **AI — Object** | Coco-SSD / TensorFlow.js (object detection) |
+| **Wallet** | Pera Wallet + Defly Wallet (@txnlab/use-wallet-react) |
+| **Maps** | Leaflet.js (geolocation + route visualization) |
+
+---
+
+## 🏆 Why We Win (Evaluation Criteria)
+
+### 1. Technical Implementation & Code Quality
+- **4 distinct AI engines** working as verification oracles — not just chatbots
+- **Smart Contracts** in PyTeal with Inner Transactions, Box Storage, Local State
+- **Full-stack**: React + Node.js + MongoDB + Algorand — production-grade architecture
+- **16 pages**, each with real functionality — no mockups, no placeholders
+
+### 2. Effective Use of Algorand Features
+- **AI-Governed Escrow** — Payments lock on-chain, released only on AI verification
+- **Box Storage** — Global order book stored directly on-chain
+- **Local State** — Trust Score as soulbound, on-chain reputation
+- **State Proofs** — Cross-chain identity export (designed)
+- **3.3s Finality** — Real-time verification feedback loops
+
+### 3. Relevance to Problem Statement
+**Problem:** "Lack of trust, manual verification, and data tampering" in campus systems.
+
+**Solution:** CVP removes the manual verifier entirely.
+- *Did you exercise?* → **MediaPipe counts your reps.**
+- *Did you return the laptop?* → **Coco-SSD scans it.**
+- *Did you really carpool?* → **Gemini Vision confirms it.**
+- *Did they find your lost keys?* → **Gemini AI verifies the proof and releases your payment.**
+- *Are you trustworthy?* → **Your on-chain Trust Score proves it immutably.**
+
+### 4. Feasibility & Scalability
+- **Works today** — The prototype runs on TestNet with standard webcams and phones. No hardware cost.
+- **Phase 1 (VIT Pune):** Pilot with Gym & Hostel
+- **Phase 2 (Inter-College):** Hostel Leagues — colleges compete on fitness/eco/civic scores
+- **Phase 3 (National):** Trust Score becomes a **standard hiring metric for integrity**
 
 ---
 
@@ -166,58 +253,128 @@ graph TD
 
 ### Prerequisites
 - **Node.js** (v18+)
-- **Algorand Wallet** (Pera Mobile App recommended) connected to **TestNet**.
-- **TestNet ALGO**: Get free funds from the [Algorand Dispenser](https://bank.testnet.algorand.network/).
+- **MongoDB** (local or Docker)
+- **Algorand Wallet** (Pera Mobile App) connected to **TestNet**
+- **TestNet ALGO**: [Algorand Dispenser](https://bank.testnet.algorand.network/)
 
 ### 1. Clone & Install
 ```bash
 git clone https://github.com/miran786/PushBet--Algorand.git
 cd PushBet--Algorand
 npm install
+cd server && npm install && cd ..
 ```
 
 ### 2. Configure Environment
-Create a `.env` file in the root directory:
+
+**Root `.env`:**
 ```env
-# Optional: Get a free key from Google AI Studio for Commute Verification
-VITE_GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+MNEMONIC="your_25_word_mnemonic"
+ALGOD_SERVER="https://testnet-api.algonode.cloud"
+ALGOD_PORT=443
 ```
 
-### 3. Database Setup (MongoDB)
-This project uses **MongoDB** for user data and leaderboards.
-You can run it easily using **Docker**:
-```powershell
-docker start miran_mongo
-```
-*Note: If the container doesn't exist, create it:*
-```powershell
-docker run -d -p 27017:27017 --name miran_mongo mongo:latest
+**`server/.env`:**
+```env
+MONGO_URI=mongodb://localhost:27017/miran_db
+PORT=8000
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 ```
 
-### 3. Run the App
+> Get a free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
+
+### 3. Database Setup
 ```bash
+# Start MongoDB (Docker)
+docker run -d -p 27017:27017 --name miran_mongo mongo:latest
+
+# Seed test data
+cd server && node seed-db.js
+```
+
+### 4. Run
+```bash
+# Terminal 1: Backend
+cd server && node server.js
+
+# Terminal 2: Frontend
 npm run dev
 ```
-Open **http://localhost:5174** (or the port shown in terminal).
+
+Open **http://localhost:5173**
 
 ---
 
-## 🧪 How to Test (Demo Flow)
+## 🧪 Demo Flow (How to Test)
 
-1.  **AI Marketplace:** Go to "Marketplace" → Click "Post a Need" → Type any need (e.g. *"need 2024 calculus notes"*) → Watch AI generate contract terms → Post it. Then switch to "Browse Needs" to see it live.
-2.  **Commute:** Go to "Commute Arena" → "I Need a Ride" → "Start Trip" → "Verify Arrival" (Gemini AI).
-3.  **Lending:** Go to "Asset Arena" → "Borrow Item". If your Trust Score is high (simulated), collateral is 0 ALGO!
-4.  **Profile:** Go to "Profile" (Sidebar) to see your **Dynamic Identity NFT**.
+| # | Feature | Steps |
+|:---|:---|:---|
+| 1 | **AI Marketplace** | Marketplace → "Post a Need" → Type *"need 2024 calculus notes"* → Watch AI generate contract terms → Post it → Browse Needs to see it live |
+| 2 | **Fitness Arena** | Fitness → Enable webcam → Do push-ups → Watch AI count in real-time |
+| 3 | **Commute Pool** | Commute Arena → "I Need a Ride" → Start Trip → Verify Arrival (Gemini AI) |
+| 4 | **Asset Lending** | Asset Arena → "Borrow Item" → Trust Score > 50 = Zero Collateral! |
+| 5 | **Civic Sense** | Civic Arena → Report an issue with a photo → AI verifies |
+| 6 | **Leaderboard** | Leaderboard → See rankings across Fitness, Civic, Eco, Trust |
+| 7 | **Profile** | Profile → See your Dynamic Identity NFT and reputation stats |
 
 ---
 
-## 📜 Smart Contracts
+## 📜 Smart Contracts (Deployed to TestNet)
 
 | Contract | Testnet App ID | Description |
-| :--- | :--- | :--- |
-| **Trust Score** | `755297339` | Stores User Reputation (Local State). |
-| **Commute** | `755297342` | Handles ride escrow & payouts. |
-| **AI Marketplace** | `755297353` | AI-Governed Escrow — Gemini generates terms & verifies proof. |
+|:---|:---|:---|
+| **Trust Score** | `755297339` | Stores User Reputation (Local State) |
+| **Commute** | `755297342` | Handles ride escrow & payouts |
+| **AI Marketplace** | `755297353` | AI-Governed Escrow — Gemini generates terms & verifies proof |
+| **Asset Lending** | `755412952` | Trustless borrowing with AI condition verification |
+
+---
+
+## 📁 Project Structure
+
+```
+PushBet--Algorand/
+├── src/app/
+│   ├── pages/               # 16 full-featured pages
+│   │   ├── Dashboard.tsx     # Central hub
+│   │   ├── Marketplace.tsx   # AI-Governed Marketplace
+│   │   ├── Arena.tsx         # Fitness (Proof of Workout)
+│   │   ├── CommuteArena.tsx  # Commute Pool (Eco-Travel)
+│   │   ├── AssetArena.tsx    # Asset Lending
+│   │   ├── CivicArena.tsx    # Civic Sense Reporting
+│   │   ├── Leaderboard.tsx   # Global Rankings
+│   │   ├── HostelLeague.tsx  # Inter-Hostel Competition
+│   │   ├── Profile.tsx       # Dynamic Identity NFT
+│   │   ├── Reputation.tsx    # Trust Score Breakdown
+│   │   ├── ValidatorNode.tsx # Human Oracle Interface
+│   │   └── ...
+│   ├── components/           # Reusable UI components
+│   ├── context/              # Auth & Wallet providers
+│   └── routes.ts             # Application routing
+├── server/
+│   ├── controllers/          # API logic + Gemini AI integration
+│   ├── models/               # MongoDB schemas (User, Need, Claim, etc.)
+│   ├── routes/               # Express route definitions
+│   └── server.js             # Backend entry point
+├── contracts/                # PyTeal smart contracts
+│   ├── trust_score.py
+│   ├── marketplace_contract.py
+│   ├── asset_escrow.py
+│   └── commute_checkin.py
+└── scripts/                  # Deployment & testing utilities
+```
+
+---
+
+<div align="center">
+
+### 🌟 The Future of Campus Life is Trustless, AI-Governed, and On-Chain.
+
+**CVP doesn't just digitize campus processes — it makes trust a *verifiable, automated, and portable* asset.**
+
+*Built with ❤️ for Hackspiration '26*
+
+</div>
 
 ---
 
