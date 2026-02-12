@@ -82,20 +82,36 @@ export function Login() {
                         {isLoading ? "Signing In..." : "Sign In"}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setEmail("test@test.com");
-                            setPassword("password123");
-                        }}
-                        className="w-full mt-4 bg-gray-800 text-gray-400 font-bold py-2 rounded-xl hover:bg-gray-700 transition-all text-xs border border-gray-700"
-                    >
-                        ⚡ DEV LOGIN (TestUser)
-                    </button>
+                    <div className="pt-4 space-y-3">
+                        <div className="text-center">
+                            <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Quick Login (Dev Mode)</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { name: "Student 1", email: "champ@campus.edu", icon: "🏆" },
+                                { name: "Student 2", email: "fitness@campus.edu", icon: "🏃" },
+                                { name: "Student 3", email: "monitor@campus.edu", icon: "🧹" },
+                                { name: "Student 4", email: "test@test.com", icon: "⚡" }
+                            ].map((user) => (
+                                <button
+                                    key={user.email}
+                                    type="button"
+                                    onClick={() => {
+                                        setEmail(user.email);
+                                        setPassword("password123");
+                                    }}
+                                    className="flex flex-col items-center justify-center bg-gray-800/50 border border-gray-700/50 p-2 rounded-xl hover:bg-gray-700 hover:border-[var(--electric-volt)] transition-all group"
+                                >
+                                    <span className="text-lg mb-1 group-hover:scale-110 transition-transform">{user.icon}</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase truncate w-full px-1">{user.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </form>
 
-                <div className="mt-6 text-center text-gray-400 text-sm">
-                    Don't have an account? <Link to="/signup" className="text-[var(--electric-volt)] hover:underline">Sign Up</Link>
+                <div className="mt-8 text-center text-gray-500 text-[10px] uppercase font-bold tracking-widest">
+                    Campus Protocol Secure Access
                 </div>
             </div>
         </div>

@@ -22,13 +22,31 @@ const seedData = async () => {
         console.log("Creating Users...");
         const hashedPassword = await bcrypt.hash("password123", 10);
         const users = [
-            { email: "champ@campus.edu", walletAddress: "ALGO_ADDR_1_TEST_ABC", username: "Campus_Champ", funds: 100 },
-            { email: "fitness@campus.edu", walletAddress: "ALGO_ADDR_2_TEST_XYZ", username: "Fitness_Freak", funds: 50 },
-            { email: "monitor@campus.edu", walletAddress: "ALGO_ADDR_3_TEST_LMN", username: "Clean_Monitor", funds: 75 },
+            {
+                email: "champ@campus.edu",
+                password: hashedPassword,
+                walletAddress: "ALGO_ADDR_1_TEST_ABC",
+                username: "Student 1",
+                funds: 100
+            },
+            {
+                email: "fitness@campus.edu",
+                password: hashedPassword,
+                walletAddress: "ALGO_ADDR_2_TEST_XYZ",
+                username: "Student 2",
+                funds: 50
+            },
+            {
+                email: "monitor@campus.edu",
+                password: hashedPassword,
+                walletAddress: "ALGO_ADDR_3_TEST_LMN",
+                username: "Student 3",
+                funds: 75
+            },
             {
                 email: "test@test.com",
                 password: hashedPassword,
-                username: "Dev_Test_User",
+                username: "Student 4",
                 walletAddress: "ALGO_DEV_TEST_ADDR",
                 funds: 1000
             }

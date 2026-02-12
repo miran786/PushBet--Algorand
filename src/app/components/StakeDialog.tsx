@@ -15,17 +15,32 @@ import { toast } from "sonner";
 interface StakeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStakeSuccess: () => void;
+  mode?: 'SOLO' | 'PARTNER';
 }
 
-export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
+export function StakeDialog({ open, onOpenChange, onStakeSuccess, mode = 'SOLO' }: StakeDialogProps) {
   const { activeAccount, signTransactions } = useWallet();
   const [stakeAmount, setStakeAmount] = useState("1");
   const [repTarget, setRepTarget] = useState("20");
+  const [partner, setPartner] = useState("");
   const [isStaking, setIsStaking] = useState(false);
+
+  const partners = [
+    { name: "Student 1 (Champ)", email: "champ@campus.edu" },
+    { name: "Student 2 (Fitness)", email: "fitness@campus.edu" },
+    { name: "Student 3 (Monitor)", email: "monitor@campus.edu" },
+    { name: "Student 4 (Dev)", email: "test@test.com" },
+  ].filter(p => p.email !== activeAccount?.address);
 
   const handleStake = async () => {
     if (!activeAccount) {
       toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (mode === 'PARTNER' && !partner) {
+      toast.error("Please select a partner for the challenge");
       return;
     }
 
@@ -39,12 +54,16 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
       const params = await algodClient.getTransactionParams().do();
       const amountMicroAlgos = algosdk.algosToMicroalgos(parseFloat(stakeAmount));
 
+      const noteContent = mode === 'PARTNER'
+        ? `PushBet Partner Stake: ${stakeAmount} ALGO | Partner: ${partner} | Target: ${repTarget} Reps`
+        : `PushBet Stake: ${stakeAmount} ALGO | Target: ${repTarget} Reps`;
+
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: activeAccount.address,
         receiver: "HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUC35DQYIJCKQKZQ", // House Wallet (Testnet)
         amount: amountMicroAlgos,
         suggestedParams: params,
-        note: new TextEncoder().encode(`PushBet Stake: ${stakeAmount} ALGO | Target: ${repTarget} Reps`),
+        note: new TextEncoder().encode(noteContent),
       });
 
       const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
@@ -69,7 +88,10 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
       toast.info("Transaction sent. Waiting for confirmation...");
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
-      toast.success(`Stake Confirmed! Target: ${repTarget} Reps`);
+      toast.success(mode === 'PARTNER'
+        ? `Stake Confirmed! Playing with ${partner}`
+        : `Stake Confirmed! Target: ${repTarget} Reps`);
+      onStakeSuccess();
       onOpenChange(false);
     } catch (error: any) {
       console.error("Staking failed:", error);
@@ -88,19 +110,44 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[var(--matte-black)] border-2 border-[var(--algorand-cyan)]/30 text-white max-w-lg
-                               backdrop-blur-xl shadow-2xl shadow-[var(--neon-cyan-glow)]/50">
+                                backdrop-blur-xl shadow-2xl shadow-[var(--neon-cyan-glow)]/50">
         <DialogHeader>
-          <DialogTitle className="font-['Exo_2'] font-black text-3xl tracking-wider">
+          <DialogTitle className="font-['Exo_2'] font-black text-3xl tracking-wider uppercase">
             <span className="bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] bg-clip-text text-transparent">
-              PLACE YOUR STAKE
+              {mode === 'PARTNER' ? 'CO-OP CHALLENGE' : 'SOLO STAKE'}
             </span>
           </DialogTitle>
           <DialogDescription className="font-['Rajdhani'] text-white/60 text-base">
-            Set your stake amount and rep target to enter the challenge
+            {mode === 'PARTNER'
+              ? "Select a partner and set your group target."
+              : "Set your stake amount and rep target to enter the challenge."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
+          {/* Partner Selection (If Partner Mode) */}
+          {mode === 'PARTNER' && (
+            <div className="space-y-3 animate-in slide-in-from-top-4 duration-300">
+              <label className="flex items-center gap-2 font-['Rajdhani'] font-semibold text-sm tracking-wider text-[var(--algorand-cyan)]">
+                <Users className="w-4 h-4" />
+                SELECT PARTNER
+              </label>
+              <select
+                value={partner}
+                onChange={(e) => setPartner(e.target.value)}
+                className="w-full px-4 py-4 rounded-xl bg-white/5 border-2 border-white/10 
+                         focus:border-[var(--algorand-cyan)]/50 outline-none
+                         font-['Exo_2'] font-bold text-lg tracking-tight text-white
+                         transition-all duration-300 appearance-none cursor-pointer"
+              >
+                <option value="" disabled className="bg-black">Choose a fellow student...</option>
+                {partners.map(p => (
+                  <option key={p.email} value={p.name} className="bg-black">{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Stake Amount */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 font-['Rajdhani'] font-semibold text-sm tracking-wider text-[var(--algorand-cyan)]">
@@ -147,7 +194,7 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
           <div className="space-y-3">
             <label className="flex items-center gap-2 font-['Rajdhani'] font-semibold text-sm tracking-wider text-[var(--electric-volt)]">
               <TrendingUp className="w-4 h-4" />
-              REP TARGET
+              {mode === 'PARTNER' ? 'COMBINED TARGET' : 'REP TARGET'}
             </label>
             <div className="relative">
               <input
@@ -183,9 +230,11 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
           <div className="p-4 rounded-xl bg-gradient-to-r from-[var(--algorand-cyan)]/10 to-[var(--electric-volt)]/10
                         border border-[var(--algorand-cyan)]/30">
             <div className="flex justify-between items-center">
-              <span className="font-['Rajdhani'] text-white/80">Potential Win:</span>
+              <span className="font-['Rajdhani'] text-white/80">
+                {mode === 'PARTNER' ? 'Potential Split Win:' : 'Potential Win:'}
+              </span>
               <span className="font-['Exo_2'] font-black text-2xl bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] bg-clip-text text-transparent">
-                {(parseFloat(stakeAmount || "0") * 1.8).toFixed(1)} ALGO
+                {(parseFloat(stakeAmount || "0") * (mode === 'PARTNER' ? 2.5 : 1.8)).toFixed(1)} ALGO
               </span>
             </div>
           </div>
@@ -194,23 +243,26 @@ export function StakeDialog({ open, onOpenChange }: StakeDialogProps) {
           <button
             onClick={handleStake}
             disabled={isStaking}
-            className="w-full py-4 rounded-xl font-['Exo_2'] font-bold tracking-widest
-                     bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)]
-                     text-[var(--deep-charcoal)] shadow-lg shadow-[var(--neon-cyan-glow)]
-                     hover:shadow-xl hover:shadow-[var(--neon-cyan-glow)] transition-all duration-300
-                     hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex justify-center items-center gap-2"
+            className={`w-full py-4 rounded-xl font-['Exo_2'] font-bold tracking-widest
+                     ${mode === 'PARTNER'
+                ? 'bg-gradient-to-r from-[var(--algorand-cyan)] to-indigo-600 shadow-[var(--neon-cyan-glow)]'
+                : 'bg-gradient-to-r from-[var(--algorand-cyan)] to-[var(--electric-volt)] shadow-[var(--neon-cyan-glow)]'}
+                     text-[var(--deep-charcoal)] shadow-lg 
+                     hover:shadow-xl transition-all duration-300
+                     hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex justify-center items-center gap-2`}
           >
             {isStaking ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                CONFIRMING...
+                STAKING...
               </>
             ) : (
-              "CONFIRM STAKE"
+              mode === 'PARTNER' ? "CHALLENGE PARTNER" : "CONFIRM STAKE"
             )}
           </button>
         </div>
       </DialogContent>
     </Dialog>
+
   );
 }

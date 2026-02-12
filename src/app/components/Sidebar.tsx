@@ -1,9 +1,11 @@
-import { Trophy, Users, Wallet, Medal, Shield, User } from "lucide-react";
+import { Trophy, Users, Wallet, Medal, Shield, User, LogOut } from "lucide-react";
 import { FaHome, FaRunning, FaHandHoldingHeart, FaLeaf, FaCar, FaWallet, FaTrophy, FaUser, FaLock, FaGavel, FaStore, FaBuilding } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export function Sidebar() {
   const location = useLocation();
+  const { logout } = useAuth();
 
   const navItems = [
     { icon: Trophy, label: "Arena", path: "/" },
@@ -73,6 +75,25 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Logout Button */}
+      <button
+        onClick={logout}
+        className="mt-auto group relative w-14 h-14 rounded-xl flex items-center justify-center
+                  transition-all duration-300 backdrop-blur-xl bg-white/5 border border-white/10 
+                  hover:bg-red-500/10 hover:border-red-500/30"
+      >
+        <LogOut className="w-6 h-6 text-white/60 group-hover:text-red-400 transition-colors duration-300" strokeWidth={2.5} />
+
+        {/* Tooltip */}
+        <div className="absolute left-20 px-3 py-2 rounded-lg bg-[var(--matte-black)] border border-red-500/30 
+                      backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none
+                      whitespace-nowrap shadow-lg shadow-red-500/20">
+          <span className="font-['Rajdhani'] font-semibold text-sm tracking-wider text-red-400">
+            Logout
+          </span>
+        </div>
+      </button>
     </div>
   );
 }

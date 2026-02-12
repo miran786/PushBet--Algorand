@@ -1,4 +1,10 @@
-export function HUDOverlay() {
+interface HUDOverlayProps {
+  repCount?: number;
+  repTarget?: number;
+  stakeAmount?: number | string;
+}
+
+export function HUDOverlay({ repCount = 0, repTarget = 20, stakeAmount = "1 ALGO" }: HUDOverlayProps) {
   return (
     <>
       {/* Top HUD Bar */}
@@ -10,15 +16,15 @@ export function HUDOverlay() {
             <div className="flex flex-col">
               <span className="font-['Rajdhani'] text-[var(--algorand-cyan)] text-xs tracking-wider">REP COUNT</span>
               <div className="font-['Exo_2'] font-black text-2xl tracking-tight">
-                <span className="text-[var(--electric-volt)]">18</span>
-                <span className="text-white/40">/20</span>
+                <span className="text-[var(--electric-volt)]">{repCount}</span>
+                <span className="text-white/40">/{repTarget}</span>
               </div>
             </div>
             <div className="w-px h-8 bg-white/20" />
             <div className="flex flex-col">
               <span className="font-['Rajdhani'] text-[var(--algorand-cyan)] text-xs tracking-wider">STAKE</span>
               <div className="font-['Exo_2'] font-bold text-lg tracking-tight text-white">
-                50 ALGO
+                {stakeAmount}
               </div>
             </div>
           </div>
@@ -66,17 +72,19 @@ export function HUDOverlay() {
               </div>
             </div>
 
-            {/* Progress Indicator */}
             <div className="flex items-center gap-3">
               <span className="font-['Rajdhani'] font-semibold text-sm text-white/60">
                 Challenge Progress
               </span>
               <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full w-[90%] bg-gradient-to-r from-[var(--electric-volt)] via-[var(--algorand-cyan)] to-[var(--electric-volt)] 
-                              rounded-full shadow-lg shadow-[var(--neon-cyan-glow)] animate-pulse" />
+                <div
+                  className="h-full bg-gradient-to-r from-[var(--electric-volt)] via-[var(--algorand-cyan)] to-[var(--electric-volt)] 
+                                rounded-full shadow-lg shadow-[var(--neon-cyan-glow)] animate-pulse transition-all duration-300"
+                  style={{ width: `${Math.min((repCount / repTarget) * 100, 100)}%` }}
+                />
               </div>
               <span className="font-['Exo_2'] font-bold text-sm text-white">
-                90%
+                {Math.round(Math.min((repCount / repTarget) * 100, 100))}%
               </span>
             </div>
           </div>

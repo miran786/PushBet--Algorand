@@ -61,6 +61,7 @@ function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
 export function CommuteArena() {
     const { activeAccount, signTransactions } = useWallet();
     const [coords, setCoords] = useState<{ lat: number; lng: number }>(VIT_COORDS);
+    const [distanceToDest, setDistanceToDest] = useState<number | null>(null);
     const [rideStatus, setRideStatus] = useState<"idle" | "active" | "verifying_photo" | "arrived">("idle");
     const [payoutStatus, setPayoutStatus] = useState<"pending" | "success" | "error" | null>(null);
 
@@ -79,21 +80,38 @@ export function CommuteArena() {
 
     // Watch position
     useEffect(() => {
+        let watchId: number;
         if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
+            watchId = navigator.geolocation.watchPosition(
                 (position) => {
-                    setCoords({
+                    const newCoords = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
-                    });
+                    };
+                    setCoords(newCoords);
+
+                    // Track distance during trip
+                    if (rideStatus === "active") {
+                        const dist = haversineDistance(newCoords, VIT_COORDS);
+                        setDistanceToDest(dist);
+
+                        // Auto-prompt arrival if within 100m (0.1km)
+                        if (dist < 0.1) {
+                            toast.info("You've arrived at VIT Pune! Opening verification...");
+                            setRideStatus("verifying_photo");
+                        }
+                    }
                 },
                 (error) => {
                     console.error("Geolocation Error:", error);
-                    // toast.error("Location access denied. Using Demo Coords.");
-                }
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
         }
-    }, []);
+        return () => {
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+        };
+    }, [rideStatus]);
 
     // Check Account Status on Connect
     useEffect(() => {
@@ -103,16 +121,9 @@ export function CommuteArena() {
                 const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
                 const info = await algodClient.accountInformation(activeAccount.address).do();
 
-                // Check if opted into APP_ID
                 const appLocalState = info['apps-local-state'] || [];
                 const isOpted = appLocalState.some((app: any) => app.id === APP_ID);
                 setIsOptedIn(isOpted);
-
-                if (isOpted) {
-                    // Try to fetch role from local state if possible (requires decoding k/v)
-                    // For now, we assume role is not persisted in UI state on reload, or fetch it here.
-                    // Simplified for demo: just set opted in.
-                }
             } catch (e) {
                 console.error("Failed to fetch account info", e);
             }
@@ -545,7 +556,26 @@ export function CommuteArena() {
                         </MapContainer>
 
                         {/* Overlay Controls */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-4">
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-4 space-y-4">
+                            {distanceToDest !== null && (
+                                <div className="bg-black/80 backdrop-blur-xl border border-pink-500/30 p-4 rounded-2xl flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-4">
+                                    <div className="flex items-center gap-3">
+                                        <FaMapMarkerAlt className="text-pink-500" />
+                                        <div className="text-left">
+                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Target</p>
+                                            <p className="text-sm font-bold text-white uppercase">VIT Pune College</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Left</p>
+                                        <p className="text-lg font-black text-pink-500">
+                                            {distanceToDest < 1
+                                                ? `${(distanceToDest * 1000).toFixed(0)} m`
+                                                : `${distanceToDest.toFixed(2)} km`}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                             <button
                                 onClick={() => setRideStatus("verifying_photo")}
                                 className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl border border-white/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"

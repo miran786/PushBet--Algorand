@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
   winnings: [{ type: Number }],
   losses: [{ type: Number }],
   trustScore: { type: Number, default: 50 }, // Start with neutral trust
+  badges: [{ type: String }], // Array of badge IDs or names (e.g., 'PUSHUP_MASTER', 'CLEAN_CONTRIBUTOR')
 });
 
 module.exports = mongoose.model("User", userSchema);

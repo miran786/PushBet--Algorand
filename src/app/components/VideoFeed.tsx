@@ -14,9 +14,12 @@ import { POSE_CONNECTIONS, API_KEY } from "@mediapipe/pose";
 interface VideoFeedProps {
   onRepCount?: (count: number) => void;
   isActive: boolean;
+  repCount?: number;
+  repTarget?: number;
+  stakeAmount?: number | string;
 }
 
-export function VideoFeed({ onRepCount, isActive }: VideoFeedProps) {
+export function VideoFeed({ onRepCount, isActive, repCount, repTarget, stakeAmount }: VideoFeedProps) {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [detector] = useState(() => new PoseDetector());
@@ -145,7 +148,11 @@ export function VideoFeed({ onRepCount, isActive }: VideoFeedProps) {
       )}
 
       {/* HUD Overlay */}
-      <HUDOverlay />
+      <HUDOverlay
+        repCount={repCount}
+        repTarget={repTarget}
+        stakeAmount={stakeAmount}
+      />
 
       {/* Scan line effect (only when active) */}
       {isActive && (

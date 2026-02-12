@@ -3,6 +3,7 @@ import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
 import { FaUserGraduate, FaDumbbell, FaLeaf, FaShieldAlt, FaShareAlt } from "react-icons/fa";
 import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
 
 // Mock Levels based on Score
 const GET_LEVEL = (score: number) => {
@@ -13,22 +14,37 @@ const GET_LEVEL = (score: number) => {
 
 export function Profile() {
     const { activeAccount } = useWallet();
+    const { user } = useAuth(); // Assuming useAuth provides user data
     const [stats, setStats] = useState({ trust: 0, fitness: 0, eco: 0 });
+    const [badges, setBadges] = useState<string[]>([]);
     const level = GET_LEVEL(stats.trust);
 
-    // Fetch Stats from Chain
+    // Fetch Stats and Badges
     useEffect(() => {
-        if (!activeAccount) return;
-        // Mocking fetch for smoothness, in real app use indexer
-        // Simulating that user has some history
-        setTimeout(() => {
-            setStats({
-                trust: 65,
-                fitness: 12, // Level 12
-                eco: 24 // 24 Rides
-            });
-        }, 1000);
-    }, [activeAccount]);
+        const fetchUserData = async () => {
+            if (!activeAccount) return;
+
+            try {
+                // Fetch Badges
+                const badgeRes = await fetch(`http://localhost:8000/api/gamification/badges/${activeAccount.address}`);
+                const badgeData = await badgeRes.json();
+                if (badgeData.success) {
+                    setBadges(badgeData.badges);
+                }
+
+                // Mocking other stats for now as in original
+                setStats({
+                    trust: user?.trustScore || 65,
+                    fitness: 12,
+                    eco: 24
+                });
+            } catch (error) {
+                console.error("Failed to fetch profile data", error);
+            }
+        };
+
+        fetchUserData();
+    }, [activeAccount, user]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start p-4 pt-10">
@@ -38,26 +54,26 @@ export function Profile() {
             </h1>
 
             <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
-                
+
                 {/* LEFT: THE NFT CARD */}
                 <div className="flex flex-col items-center">
                     <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--electric-volt)] to-[var(--algorand-cyan)] mb-6 uppercase tracking-widest">
                         YOUR CVP NFT BADGE
                     </h2>
-                    
+
                     {/* 3D Flip Card Effect Container */}
                     <div className="group w-80 h-[480px] perspective-1000">
                         <div className={`relative w-full h-full transition-all duration-700 transform style-preserve-3d border-2 ${level.border} rounded-3xl bg-black shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden`}>
-                            
+
                             {/* Card Background (Dynamic) */}
                             <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black opacity-90"></div>
-                            
+
                             {/* Holographic Overlay */}
                             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 
                             {/* Content */}
                             <div className="relative p-6 flex flex-col h-full justify-between z-10">
-                                
+
                                 {/* Header */}
                                 <div className="flex justify-between items-start">
                                     <FaUserGraduate className={`text-4xl ${level.color}`} />
@@ -71,14 +87,23 @@ export function Profile() {
                                 <div className="flex-1 flex items-center justify-center my-4">
                                     <div className={`w-32 h-32 rounded-full border-4 ${level.border} flex items-center justify-center bg-gray-800 relative`}>
                                         {/* Dynamic Avatar based on Fitness Score */}
-                                        <img 
-                                            src={`https://api.dicebear.com/7.x/bottts/svg?seed=${activeAccount?.address}&backgroundColor=transparent`} 
+                                        <img
+                                            src={`https://api.dicebear.com/7.x/bottts/svg?seed=${activeAccount?.address}&backgroundColor=transparent`}
                                             alt="Avatar"
                                             className="w-24 h-24"
                                         />
-                                        {/* Badges */}
-                                        {stats.eco > 20 && <div className="absolute -right-2 -bottom-2 bg-green-500 text-black p-2 rounded-full text-xs font-bold shadow-lg" title="Eco Warrior">🌿</div>}
-                                        {stats.fitness > 10 && <div className="absolute -left-2 -bottom-2 bg-red-500 text-white p-2 rounded-full text-xs font-bold shadow-lg" title="Gym Rat">💪</div>}
+                                        {/* Dynamic Badges Area */}
+                                        <div className="absolute -inset-4 pointer-events-none">
+                                            {badges.includes('PUSHUP_MASTER') && (
+                                                <div className="absolute top-0 -right-2 bg-gradient-to-br from-yellow-400 to-orange-500 text-black p-2 rounded-xl text-xs font-black shadow-lg animate-bounce" title="Pushup Master">🏆</div>
+                                            )}
+                                            {badges.includes('CLEAN_CONTRIBUTOR') && (
+                                                <div className="absolute bottom-0 -left-2 bg-gradient-to-br from-green-400 to-emerald-600 text-white p-2 rounded-xl text-xs font-bold shadow-lg" title="Clean Contributor">🌿</div>
+                                            )}
+                                            {badges.includes('STAKE_WARRIOR') && (
+                                                <div className="absolute top-0 -left-2 bg-gradient-to-br from-blue-400 to-indigo-600 text-white p-2 rounded-xl text-xs font-bold shadow-lg" title="Stake Warrior">⚔️</div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -135,7 +160,7 @@ export function Profile() {
                         <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
                             <h3 className="text-white font-bold mb-4">NFT Metadata (On-Chain)</h3>
                             <pre className="text-xs text-green-400 font-mono overflow-x-auto p-2 bg-black rounded-lg">
-{`{
+                                {`{
   "standard": "arc69",
   "properties": {
     "trust_score": ${stats.trust},
