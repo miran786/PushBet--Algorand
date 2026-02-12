@@ -165,6 +165,17 @@ Create a `.env` file in the root directory:
 VITE_GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 ```
 
+### 3. Database Setup (MongoDB)
+This project uses **MongoDB** for user data and leaderboards.
+You can run it easily using **Docker**:
+```powershell
+docker start miran_mongo
+```
+*Note: If the container doesn't exist, create it:*
+```powershell
+docker run -d -p 27017:27017 --name miran_mongo mongo:latest
+```
+
 ### 3. Run the App
 ```bash
 npm run dev

@@ -5,7 +5,7 @@ import { FaShoppingCart, FaTags, FaStore } from 'react-icons/fa';
 import { toast } from "sonner";
 
 // Replace with verified App ID after deployment
-const MARKET_APP_ID = 755297353;
+const MARKET_APP_ID = 755412952;
 
 export function Marketplace() {
     const { activeAccount, signTransactions } = useWallet();
@@ -281,7 +281,7 @@ export function Marketplace() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {/* LIST FORM */}
                 <div className="bg-gray-900/50 backdrop-blur-xl p-6 rounded-2xl border border-white/10 h-fit shadow-xl">
                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -349,7 +349,7 @@ export function Marketplace() {
                             No active listings found.
                         </div>
                     ) : activeListings.map((item) => (
-                        <div key={item.assetId} className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex flex-col justify-between">
+                        <div key={item.assetId} className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:border-gray-500 transition-all transform hover:-translate-y-1">
                             <div>
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-bold text-lg">{item.name}</h3>

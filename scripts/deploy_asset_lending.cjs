@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -46,13 +46,15 @@ var ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 var ALGOD_PORT = 443;
 var algodClient = new algosdk_1.default.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
 
-// --- HELPER: Create Account ---
-var account = algosdk_1.default.generateAccount();
-console.log("TEST ACCOUNT GENERATED:");
+// --- HELPER: Use Funded Account ---
+var MNEMONIC = "switch also east able item youth moon rigid rice fetch blame skin snack luxury patrol leaf tool symbol blind lottery return elder sponsor absent old";
+var account = algosdk_1.default.mnemonicToSecretKey(MNEMONIC);
+
+console.log("USING ACCOUNT:");
 console.log("Address:", account.addr);
-console.log("Mnemonic:", algosdk_1.default.secretKeyToMnemonic(account.sk));
-console.log("\n⚠️  PLEASE FUND THIS ACCOUNT ON TESTNET DISPENSER: https://bank.testnet.algorand.network/");
-console.log("Waiting 15 seconds for funding...");
+// console.log("Mnemonic:", algosdk_1.default.secretKeyToMnemonic(account.sk));
+// console.log("\n⚠️  PLEASE FUND THIS ACCOUNT ON TESTNET DISPENSER: https://bank.testnet.algorand.network/");
+// console.log("Waiting 15 seconds for funding...");
 
 var delay = function (ms) { return new Promise(function (res) { return setTimeout(res, ms); }); };
 
@@ -134,9 +136,9 @@ function main() {
 
                     // 1. Deploy Asset Lending App
                     console.log("\n--- Deploying Asset Lending App ---");
-                    assetTealPath = path.resolve('../contracts/asset_escrow.teal');
+                    assetTealPath = path.resolve(__dirname, '../contracts/asset_escrow.teal');
                     assetTeal = fs.readFileSync(assetTealPath, 'utf8');
-                    clearState = "#pragma version 6\nint 1\nreturn";
+                    clearState = "#pragma version 8\nint 1\nreturn";
                     return [4 /*yield*/, compileProgram(algodClient, assetTeal)];
                 case 3:
                     approvalBin = _o.sent();
@@ -151,7 +153,7 @@ function main() {
                         approvalProgram: approvalBin,
                         clearProgram: clearBin,
                         numLocalInts: 4, // item_id, collateral, borrow_time
-                        numLocalByteSlices: 4, 
+                        numLocalByteSlices: 4,
                         numGlobalInts: 0,
                         numGlobalByteSlices: 0,
                         onComplete: algosdk_1.default.OnApplicationComplete.NoOpOC,
@@ -165,7 +167,7 @@ function main() {
                     return [4 /*yield*/, algosdk_1.default.waitForConfirmation(algodClient, tx.txid, 4)];
                 case 7:
                     confirmedTxn = _o.sent();
-                    appId = confirmedTxn["application-index"];
+                    appId = confirmedTxn["application-index"] || confirmedTxn.applicationIndex;
                     console.log("✅ Asset Lending App Deployed! App ID:", appId);
 
                     // 2. Test Opt-In
@@ -178,7 +180,7 @@ function main() {
                     return [4 /*yield*/, algodClient.getTransactionParams().do()];
                 case 8:
                     optInTxn = _b.apply(_a, [(_j.suggestedParams = _o.sent(),
-                            _j)]);
+                        _j)]);
                     signedOptIn = optInTxn.signTxn(account.sk);
                     return [4 /*yield*/, algodClient.sendRawTransaction(signedOptIn).do()];
                 case 9:

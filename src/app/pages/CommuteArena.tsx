@@ -24,7 +24,7 @@ L.Icon.Default.mergeOptions({
 
 const VIT_COORDS = { lat: 18.4636, lng: 73.8682 }; // VIT Pune Coordinates
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const APP_ID = 755297342; // Live Testnet App ID
+const APP_ID = 755412945; // Live Testnet App ID
 
 // Mock Drivers Data around VIT
 const MOCK_DRIVERS = [
@@ -160,7 +160,7 @@ export function CommuteArena() {
 
             await algodClient.sendRawTransaction(filteredSignedTxns).do();
             await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 4);
-            
+
             setIsOptedIn(true);
             toast.success("Account Created Successfully!");
         } catch (e: any) {

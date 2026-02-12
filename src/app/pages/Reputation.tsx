@@ -3,7 +3,7 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { FaShieldAlt, FaDumbbell, FaLeaf, FaMedal } from 'react-icons/fa';
 import algosdk from 'algosdk';
 
-const TRUST_APP_ID = 123456789; // Replace with actual ID after deployment
+const TRUST_APP_ID = 755412941; // Replace with actual ID after deployment
 
 export function Reputation() {
     const { activeAccount } = useWallet();
@@ -75,12 +75,12 @@ export function Reputation() {
     const badge = getBadge();
 
     return (
-        <div className="min-h-screen bg-black text-white p-8 pb-32">
+        <div className="min-h-screen bg-black text-white p-4 md:p-8 pb-32">
             <h1 className="text-4xl font-black mb-8 italic">MY REPUTATION</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Trust Score Card */}
-                <div className="col-span-1 md:col-span-3 bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-8 rounded-3xl border border-white/10 flex items-center justify-between">
+                <div className="col-span-1 md:col-span-3 bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-8 rounded-3xl border border-white/10 flex items-center justify-between shadow-[0_0_50px_rgba(100,100,255,0.15)] hover:border-blue-500/30 transition-all">
                     <div>
                         <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                             <FaShieldAlt className="text-blue-400" /> TRUST SCORE

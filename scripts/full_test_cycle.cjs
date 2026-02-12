@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -89,8 +89,8 @@ function main() {
                     // 1. Compile Contract
                     commuteTealPath = path.resolve(__dirname, '../contracts/commute_checkin.teal');
                     commuteTeal = fs.readFileSync(commuteTealPath, 'utf8');
-                    clearState = "#pragma version 6\nint 1\nreturn";
-                    
+                    clearState = "#pragma version 8\nint 1\nreturn";
+
                     return [4 /*yield*/, compileProgram(algodClient, commuteTeal)];
                 case 2:
                     approvalBin = _a.sent();
@@ -103,14 +103,14 @@ function main() {
                         sender: account.addr,
                         approvalProgram: approvalBin,
                         clearProgram: clearBin,
-                        numLocalInts: 4, 
+                        numLocalInts: 4,
                         numLocalByteSlices: 4,
                         numGlobalInts: 0,
                         numGlobalByteSlices: 0,
                         onComplete: algosdk_1.default.OnApplicationComplete.NoOpOC,
                         suggestedParams: params,
                     });
-                    
+
                     signedTxn = txn.signTxn(account.sk);
                     return [4 /*yield*/, algodClient.sendRawTransaction(signedTxn).do()];
                 case 4:
@@ -123,8 +123,8 @@ function main() {
                     appId = confirmedTxn["application-index"];
                     // If undefined, try to fetch txn info again or check property name (v2 vs v3 SDK)
                     if (!appId) {
-                         // Fallback for some indexers/nodes
-                         appId = confirmedTxn.applicationIndex;
+                        // Fallback for some indexers/nodes
+                        appId = confirmedTxn.applicationIndex;
                     }
                     console.log("✅ Commute App Deployed! App ID:", appId);
 
@@ -146,7 +146,7 @@ function main() {
                 case 8:
                     _a.sent();
                     console.log("✅ Opt-In Successful");
-                    
+
                     console.log("\n🎉 FULL TEST PASSED: Contract compiles, deploys, and accepts opt-in.");
                     console.log(`__APP_ID__:${appId}`);
                     return [2 /*return*/];
@@ -154,4 +154,17 @@ function main() {
         });
     });
 }
-main().catch(console.error);
+main().catch(e => {
+    console.error("❌ TEST FAILED");
+    console.error("Error Message:", e.message);
+    if (e.response) {
+        console.error("Status:", e.status);
+        if (e.response.body) {
+            console.error("Response Body:", typeof e.response.body === 'object' ? JSON.stringify(e.response.body) : e.response.body.toString());
+        } else if (e.response.text) {
+            console.error("Response Text:", e.response.text);
+        }
+    } else {
+        console.error("Full Error:", e);
+    }
+});

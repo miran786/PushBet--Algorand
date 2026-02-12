@@ -24,8 +24,8 @@ export function AssetArena() {
     const [predictions, setPredictions] = useState<cocoSsd.DetectedObject[]>([]);
 
     // Smart Contract Config
-    const APP_ID = 755297353;
-    const TRUST_APP_ID = 755297339;
+    const APP_ID = 755413192;
+    const TRUST_APP_ID = 755412941;
     const [trustScore, setTrustScore] = useState(0);
     const [isTrusted, setIsTrusted] = useState(false);
 
@@ -199,7 +199,7 @@ export function AssetArena() {
                     {/* Borrow Option */}
                     <button
                         onClick={() => setView("borrow")}
-                        className="group relative h-64 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col items-center justify-center gap-6 hover:scale-[1.02] transition-all hover:border-[var(--algorand-cyan)] shadow-2xl"
+                        className="group relative h-64 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col items-center justify-center gap-6 hover:scale-105 transition-all hover:border-[var(--algorand-cyan)] shadow-2xl"
                     >
                         <div className="w-20 h-20 bg-[var(--algorand-cyan)]/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                             <FaHandHolding className="text-4xl text-[var(--algorand-cyan)]" />
@@ -213,7 +213,7 @@ export function AssetArena() {
                     {/* Return Option */}
                     <button
                         onClick={() => setView("return")}
-                        className="group relative h-64 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col items-center justify-center gap-6 hover:scale-[1.02] transition-all hover:border-[var(--electric-volt)] shadow-2xl"
+                        className="group relative h-64 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col items-center justify-center gap-6 hover:scale-105 transition-all hover:border-[var(--electric-volt)] shadow-2xl"
                     >
                         <div className="w-20 h-20 bg-[var(--electric-volt)]/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                             <FaUndo className="text-4xl text-[var(--electric-volt)]" />

@@ -15,7 +15,7 @@ export function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Fitness Arena */}
-                <Link to="/fitness" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--algorand-cyan)]/20 hover:border-[var(--algorand-cyan)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.2)]">
+                <Link to="/fitness" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--algorand-cyan)]/20 hover:border-[var(--algorand-cyan)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.2)] transform hover:scale-[1.02]">
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--algorand-cyan)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-8 relative z-10">
                         <div className="flex justify-between items-start mb-4">
@@ -36,7 +36,7 @@ export function Dashboard() {
                 </Link>
 
                 {/* Civic Sense */}
-                <Link to="/civic" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--neon-purple)]/20 hover:border-[var(--neon-purple)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(180,0,255,0.2)]">
+                <Link to="/civic" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--neon-purple)]/20 hover:border-[var(--neon-purple)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(180,0,255,0.2)] transform hover:scale-[1.02]">
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--neon-purple)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-8 relative z-10">
                         <div className="flex justify-between items-start mb-4">
@@ -55,7 +55,7 @@ export function Dashboard() {
                 </Link>
 
                 {/* Asset Lending */}
-                <Link to="/asset" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--electric-volt)]/20 hover:border-[var(--electric-volt)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,230,0,0.2)]">
+                <Link to="/asset" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--electric-volt)]/20 hover:border-[var(--electric-volt)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,230,0,0.2)] transform hover:scale-[1.02]">
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--electric-volt)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-8 relative z-10">
                         <div className="flex justify-between items-start mb-4">
@@ -74,7 +74,7 @@ export function Dashboard() {
                 </Link>
 
                 {/* Commute Pool */}
-                <Link to="/commute" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--plasma-pink)]/20 hover:border-[var(--plasma-pink)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,0,100,0.2)]">
+                <Link to="/commute" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-[var(--plasma-pink)]/20 hover:border-[var(--plasma-pink)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,0,100,0.2)] transform hover:scale-[1.02]">
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--plasma-pink)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-8 relative z-10">
                         <div className="flex justify-between items-start mb-4">
@@ -93,7 +93,7 @@ export function Dashboard() {
                 </Link>
 
                 {/* Marketplace */}
-                <Link to="/marketplace" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-orange-500/20 hover:border-orange-500 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,165,0,0.2)]">
+                <Link to="/marketplace" className="group relative overflow-hidden rounded-2xl bg-[var(--deep-charcoal)] border border-orange-500/20 hover:border-orange-500 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,165,0,0.2)] transform hover:scale-[1.02]">
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-8 relative z-10">
                         <div className="flex justify-between items-start mb-4">

@@ -1,10 +1,14 @@
-// Created by: Miran | Date: 01/01/2026
 const express = require("express");
 const https = require("https");
 const fs = require("fs");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
+
+// Load env from server directory if not found in root
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
 const mongoose = require("./database");
 const userRoutes = require("./routes/userRoutes");
 const gameRoutes = require("./routes/gameRoutes");

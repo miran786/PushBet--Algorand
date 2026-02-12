@@ -20,7 +20,7 @@ async function compileProgram(client, programSource) {
 async function deployContract(name, approvalPath, clearStateSource, account, params, schema) {
     console.log(`\n--- Deploying ${name} ---`);
     const approvalSource = fs.readFileSync(path.resolve(__dirname, approvalPath), 'utf8');
-    
+
     const approvalBin = await compileProgram(algodClient, approvalSource);
     const clearBin = await compileProgram(algodClient, clearStateSource);
 
@@ -39,9 +39,9 @@ async function deployContract(name, approvalPath, clearStateSource, account, par
     const signedTxn = txn.signTxn(account.sk);
     const tx = await algodClient.sendRawTransaction(signedTxn).do();
     console.log(`${name} Deploy TxID:`, tx.txid);
-    
+
     const confirmedTxn = await algosdk.waitForConfirmation(algodClient, tx.txid, 4);
-    const appId = confirmedTxn["application-index"];
+    const appId = confirmedTxn["application-index"] || confirmedTxn.applicationIndex;
     console.log(`✅ ${name} Deployed! App ID:`, appId);
     return appId;
 }
@@ -78,7 +78,7 @@ async function main() {
         console.log("TRUST_APP_ID:", trustAppId);
         console.log("COMMUTE_APP_ID:", commuteAppId);
         console.log("MARKETPLACE_APP_ID:", marketAppId);
-        
+
         console.log("\n⚠️  Update these IDs in your React Frontend constants!");
 
     } catch (e) {

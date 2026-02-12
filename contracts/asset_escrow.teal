@@ -88,7 +88,7 @@ byte "none"
 ==
 assert
 txn Sender
-int 755292569
+int 755412941
 byte "Trust_Score"
 app_local_get_ex
 store 1
