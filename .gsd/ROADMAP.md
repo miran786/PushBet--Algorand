@@ -6,9 +6,9 @@ updated: 2026-02-12T15:00:00Z
 
 # Roadmap
 
-> **Current Phase:** All Complete
-> **Status:** ✅ Milestone Complete
-> **All Must-Haves Verified**
+> **Current Phase:** 6 - AI-Governed Marketplace
+> **Status:** 📋 Planned
+> **Next:** /execute 6
 
 ## Must-Haves (from SPEC)
 
@@ -84,6 +84,16 @@ updated: 2026-02-12T15:00:00Z
 
 ---
 
+### Phase 6: AI-Governed Marketplace
+**Status:** 📋 Planned
+**Objective:** Rewrite the marketplace into a limitless, AI-governed platform where students describe any need, Gemini AI dynamically builds smart contract terms and verifies proof, and Algorand auto-releases payment.
+**Depends on:** Phase 5
+
+- [ ] 6.1: Backend — Marketplace API & MongoDB Models (Wave 1)
+- [ ] 6.2: Frontend — AI-Governed Marketplace UI (Wave 2)
+
+---
+
 ## Progress Summary
 
 | Phase | Status | Plans | Complete |
@@ -93,3 +103,5 @@ updated: 2026-02-12T15:00:00Z
 | 3 | ✅ | 4/4 | 100% |
 | 4 | ✅ | 3/3 | 100% |
 | 5 | ✅ | 8/8 | 100% |
+| 6 | 📋 | 0/2 | 0% |
+
