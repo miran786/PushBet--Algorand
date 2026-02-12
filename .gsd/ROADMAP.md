@@ -7,14 +7,15 @@ updated: 2026-02-12T15:00:00Z
 # Roadmap
 
 > **Current Phase:** 5 - Improvement
-> **Status:** planning
+> **Status:** ✅ Verified
+> **Plan:** 5.1 Complete
 
 ## Must-Haves (from SPEC)
 
 - [x] Fitness AI Integration
 - [x] Commute Smart Contract
 - [x] Asset Lending Smart Contract
-- [ ] System-wide Integration Testing
+- [x] System-wide Integration Testing
 
 ---
 
@@ -32,14 +33,14 @@ updated: 2026-02-12T15:00:00Z
 ---
 
 ### Phase 2: Asset Lending
-**Status:** 🔄 In Progress
+**Status:** ✅ Complete
 **Objective:** Design and deploy Asset Lending mechanisms with AI verification.
 **Depends on:** Phase 1
 
 **Plans:**
 - [x] Plan 2.1: Lending Contract & UI
 - [x] Plan 2.2: AI Asset Verification
-- [ ] Plan 2.3: Verify Lending Flow (Testnet)
+- [x] Plan 2.3: Verify Lending Flow (Testnet)
 
 ---
 
@@ -68,13 +69,18 @@ updated: 2026-02-12T15:00:00Z
 
 ---
 
-### Phase 5: Improvement
-**Status:** ⬜ Not Started
-**Objective:** Iterative improvements and optimizations based on feedback.
-**Depends on:** Phase 4
+### Phase 5: Improvement (Iterative Improvements)
+**Status: [x] COMPLETE**
+**Progress: 100% (8/8 Plans Executed)**
 
-**Plans:**
-- [ ] Plan 5.1: TBD (Waiting for user input)
+- [x] 5.1: Dev-Mode Test User Selector (Plan & Summary)
+- [x] 5.2: Fitness Arena Fix & Solo Staking (Summary)
+- [x] 5.3: Partner Staking & Player Selection (Plan & Summary)
+- [x] 5.4: NFT Badges & DB Reset (Student 1-4) (Summary)
+- [x] 5.5: Civic Sense Reporting & Resolving (Plan & Summary)
+- [x] 5.6: Logout Functionality (Summary)
+- [x] 5.7: Commute Pool (VIT Pune & Geolocation) (Plan & Summary)
+- [x] 5.8: Marketplace (Seller Photos & AI Negotiation) (Plan & Summary)
 
 ---
 
@@ -83,9 +89,7 @@ updated: 2026-02-12T15:00:00Z
 | Phase | Status | Plans | Complete |
 |-------|--------|-------|----------|
 | 1 | ✅ | 2/2 | 100% |
-| 2 | ✅ | 2/2 | 100% |
+| 2 | ✅ | 3/3 | 100% |
 | 3 | ✅ | 4/4 | 100% |
 | 4 | ✅ | 3/3 | 100% |
-| 5 | ⬜ | 0/1 | 0% |
-
-
+| 5 | 🔄 | 4/8 | 50% |
