@@ -105,7 +105,7 @@ export function Dashboard() {
                             Marketplace
                         </h2>
                         <p className="text-[var(--holographic-silver)]">
-                            Buy and sell campus goods. Textbooks, electronics, and more.
+                            Describe any need. AI builds the contract. Algorand pays on proof.
                         </p>
                     </div>
                 </Link>
