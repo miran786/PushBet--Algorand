@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Coins, TrendingUp, Loader2 } from "lucide-react";
+import { Coins, TrendingUp, Loader2, Users } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 interface StakeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onStakeSuccess: () => void;
+  onStakeSuccess: (data: { partnerName?: string; repTarget: number }) => void;
   mode?: 'SOLO' | 'PARTNER';
 }
 
@@ -91,7 +91,7 @@ export function StakeDialog({ open, onOpenChange, onStakeSuccess, mode = 'SOLO' 
       toast.success(mode === 'PARTNER'
         ? `Stake Confirmed! Playing with ${partner}`
         : `Stake Confirmed! Target: ${repTarget} Reps`);
-      onStakeSuccess();
+      onStakeSuccess({ partnerName: mode === 'PARTNER' ? partner : undefined, repTarget: parseInt(repTarget) || 20 });
       onOpenChange(false);
     } catch (error: any) {
       console.error("Staking failed:", error);
