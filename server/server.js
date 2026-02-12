@@ -59,6 +59,7 @@ app.use("/api/gamification", gamificationRoutes); // Added gamification routes
 app.use("/api/civic", require("./routes/civicRoutes"));
 app.use("/api/asset", require("./routes/assetRoutes"));
 app.use("/api", require("./routes/commuteRoutes"));
+app.use("/api/marketplace", require("./routes/marketplaceRoutes"));
 
 // Now pass io to the admin routes after io is initialized
 const adminRoutes = require("./controllers/consoleControllers")(io);
