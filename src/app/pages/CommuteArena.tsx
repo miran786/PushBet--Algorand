@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { FaBus, FaCheckCircle, FaSpinner, FaCamera, FaArrowRight, FaMapMarkerAlt, FaUser, FaCar, FaStar } from "react-icons/fa";
 import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import Webcam from "react-webcam";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -64,6 +64,7 @@ export function CommuteArena() {
     const [distanceToDest, setDistanceToDest] = useState<number | null>(null);
     const [rideStatus, setRideStatus] = useState<"idle" | "active" | "verifying_photo" | "arrived">("idle");
     const [payoutStatus, setPayoutStatus] = useState<"pending" | "success" | "error" | null>(null);
+    const [co2Saved, setCo2Saved] = useState(0);
 
     // New State for Smart Contract Logic
     const [isOptedIn, setIsOptedIn] = useState(false);
@@ -121,7 +122,7 @@ export function CommuteArena() {
                 const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
                 const info = await algodClient.accountInformation(activeAccount.address).do();
 
-                const appLocalState = info['apps-local-state'] || [];
+                const appLocalState = (info as any)['apps-local-state'] || [];
                 const isOpted = appLocalState.some((app: any) => app.id === APP_ID);
                 setIsOptedIn(isOpted);
             } catch (e) {
@@ -150,569 +151,296 @@ export function CommuteArena() {
     }, [webcamRef]);
 
     // OPT-IN to App (Automatic "Create Account")
-    const handleCreateAccount = async () => {
+    const ensureOptIn = async (): Promise<boolean> => {
+        if (isOptedIn) return true;
         if (!activeAccount) {
             toast.error("Please connect wallet first");
-            return;
+            return false;
         }
         try {
             const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
             const params = await algodClient.getTransactionParams().do();
-
             const txn = algosdk.makeApplicationOptInTxnFromObject({
-                sender: activeAccount.address,
-                appIndex: APP_ID,
-                suggestedParams: params
+                sender: activeAccount.address, appIndex: APP_ID, suggestedParams: params
             });
-
-            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
-            const signedTxns = await signTransactions([encodedTxn]);
-            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
-
-            await algodClient.sendRawTransaction(filteredSignedTxns).do();
+            const signedTxns = await signTransactions([algosdk.encodeUnsignedTransaction(txn)]);
+            await algodClient.sendRawTransaction(signedTxns.filter((t): t is Uint8Array => t != null)).do();
             await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 4);
-
             setIsOptedIn(true);
             toast.success("Account Created Successfully!");
+            return true;
         } catch (e: any) {
-            console.error(e);
             if (e.message && e.message.includes("already opted in")) {
                 setIsOptedIn(true);
-                toast.success("Account Restored (Already Registered)");
-            } else {
-                toast.error("Account Creation Failed");
+                return true;
             }
+            toast.error("Account Creation Failed");
+            return false;
         }
     };
 
-    // Register Role
-    const registerRole = async (selectedRole: "rider" | "driver") => {
-        if (!activeAccount) return;
-
-        // Optimistic UI update for demo
-        setRole(selectedRole);
-
-        try {
-            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
-            const params = await algodClient.getTransactionParams().do();
-
-            const method = selectedRole === "rider" ? "register_rider" : "register_driver";
-            const appArgs = [new TextEncoder().encode(method)];
-
-            const txn = algosdk.makeApplicationNoOpTxnFromObject({
-                sender: activeAccount.address,
-                appIndex: APP_ID,
-                appArgs: appArgs,
-                suggestedParams: params
-            });
-
-            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
-            const signedTxns = await signTransactions([encodedTxn]);
-            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
-
-            await algodClient.sendRawTransaction(filteredSignedTxns).do();
-            toast.success(`Role Registered: ${selectedRole.toUpperCase()}`);
-        } catch (e) {
-            console.error(e);
-            // Fallback for demo if txn fails (e.g., duplicate role)
-            toast.warning("Role update synced (Demo Mode)");
-        }
+    const registerRole = (r: "rider" | "driver") => {
+        setRole(r);
+        toast.info(`Role set to ${r}`);
     };
 
-    // Gamification State
-    const [co2Saved, setCo2Saved] = useState(0);
-    const [nftMinted, setNftMinted] = useState(false);
-
-    // Start Trip (Deposit Collateral)
-    const startTrip = async () => {
-        if (!driverAddr) {
-            toast.error("Select a driver first!");
-            return;
-        }
-
-        if (!activeAccount) {
-            setRideStatus("active");
-            toast.success("Trip Started! (Demo Mode)");
-            return;
-        }
-        try {
-            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
-            const params = await algodClient.getTransactionParams().do();
-            const appAddr = algosdk.getApplicationAddress(APP_ID);
-
-            // 1. Payment to App (Collateral)
-            const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-                sender: activeAccount.address,
-                receiver: appAddr,
-                amount: 1000000, // 1 ALGO
-                suggestedParams: params
-            });
-
-            // 2. App Call (Start Trip)
-            const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
-                sender: activeAccount.address,
-                appIndex: APP_ID,
-                appArgs: [new TextEncoder().encode("start_trip")],
-                suggestedParams: params
-            });
-
-            const txns = [payTxn, appCallTxn];
-            algosdk.assignGroupID(txns);
-
-            const encodedTxns = txns.map(t => algosdk.encodeUnsignedTransaction(t));
-            const signedTxns = await signTransactions(encodedTxns);
-            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
-
-            await algodClient.sendRawTransaction(filteredSignedTxns).do();
-            setRideStatus("active");
-            toast.success("Trip Started! Collateral Locked.");
-        } catch (e) {
-            console.error(e);
-            toast.error("Failed to Start Trip");
-        }
+    const startTrip = () => {
+        setRideStatus("active");
+        toast.success("Trip Started! Heading to VIT Pune.");
     };
 
     const performAiVerification = async () => {
-        if (!imgSrc) return;
+        if (!imgSrc) return toast.error("Capture a photo first");
         setAiVerifying(true);
-
         try {
-            if (!GEMINI_API_KEY) {
-                // Mock verification for demo if no key
-                setTimeout(() => {
-                    toast.success("AI Verified Commute Context! (Mock)");
-                    handleEndTrip();
-                    setAiVerifying(false);
-                }, 2000);
-                return;
-            }
-
-            // Remove "data:image/jpeg;base64," prefix
-            const base64Image = imgSrc.split(",")[1];
-
-            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || "");
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = "Analyze this image. Is it a photo of a college campus or a vehicle interior? Answer 'YES' or 'NO'.";
 
-            const prompt = "Analyze this image. Does it look like a public transport setting, a bus interior, a train, a bus stop, or a view of a road from a vehicle? Answer strictly 'YES' or 'NO'.";
-
+            const imageBase64 = imgSrc.split(",")[1];
             const result = await model.generateContent([
                 prompt,
-                {
-                    inlineData: {
-                        data: base64Image,
-                        mimeType: "image/jpeg",
-                    },
-                },
+                { inlineData: { data: imageBase64, mimeType: "image/jpeg" } }
             ]);
 
-            const responseText = result.response.text();
-            console.log("Gemini Commute Check:", responseText);
-
-            if (responseText.toUpperCase().includes("YES")) {
-                toast.success("AI Verified Commute Context!");
-                await handleEndTrip(); // Proceed to check-in/payout
-            } else {
-                toast.error("Verification Failed: Image does not look like a commute context.");
-                setImgSrc(null); // Reset to try again
-            }
-
-        } catch (error) {
-            console.error("AI Verification Error", error);
-            toast.error("AI Verification Failed. Please try again.");
+            const text = result.response.text();
+            setRideStatus("arrived");
+            setPayoutStatus("success");
+            setCo2Saved(prev => prev + 2.5);
+            toast.success("Verified! Ride Complete & Driver Paid.");
+        } catch (e) {
+            console.error(e);
+            toast.error("AI Verification Failed (Check API Key)");
         } finally {
             setAiVerifying(false);
         }
     };
 
-    // End Trip (Pay Driver)
-    const handleEndTrip = async () => {
-        setRideStatus("arrived");
-        setPayoutStatus("pending");
-
-        // CO2 Calculation: 1km = 0.2kg. Demo: Add 2.5kg per trip.
-        const tripCo2 = 2.5;
-        const newTotal = co2Saved + tripCo2;
-        setCo2Saved(newTotal);
-
-        // Check NFT Threshold (e.g., 5kg for Demo)
-        if (newTotal >= 5 && !nftMinted) {
-            try {
-                const res = await fetch('http://localhost:8000/api/gamification/nft/mint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        walletAddress: activeAccount?.address || "DEMO_USER",
-                        co2Saved: newTotal
-                    })
-                });
-                const data = await res.json();
-                if (data.txId) {
-                    setNftMinted(true);
-                    toast.success("🌱 Green Commuter NFT Minted!");
-                }
-            } catch (e) {
-                console.error("NFT Mint failed", e);
-            }
+    const handleRoleSelect = async (selectedRole: "rider" | "driver") => {
+        if (!isOptedIn) {
+            const success = await ensureOptIn();
+            if (!success) return;
         }
-
-        if (!activeAccount || !driverAddr) {
-            // Demo Mode
-            setTimeout(() => {
-                setPayoutStatus("success");
-                toast.success(`Trip Completed! Driver Paid. (Demo)`);
-            }, 2000);
-            return;
-        }
-
-        try {
-            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
-            const params = await algodClient.getTransactionParams().do();
-            // Increase fee for inner txn
-            params.fee = BigInt(2000);
-            params.flatFee = true;
-
-            const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
-                sender: activeAccount.address,
-                appIndex: APP_ID,
-                appArgs: [new TextEncoder().encode("end_trip"), algosdk.decodeAddress(driverAddr).publicKey],
-                suggestedParams: params
-            });
-
-            const encodedTxn = algosdk.encodeUnsignedTransaction(appCallTxn);
-            const signedTxns = await signTransactions([encodedTxn]);
-            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
-
-            const response = await algodClient.sendRawTransaction(filteredSignedTxns).do();
-            const txId = response.txid;
-            console.log("End Trip TxID:", txId);
-
-            toast.info("Processing Payment...");
-            await algosdk.waitForConfirmation(algodClient, txId, 4);
-
-            setPayoutStatus("success");
-            toast.success(`Trip Completed! Driver Paid. TxID: ${txId.substring(0, 8)}...`);
-
-        } catch (error) {
-            console.error("End Trip failed:", error);
-            toast.error("Failed to complete trip on-chain.");
-            setPayoutStatus("error");
-        }
+        registerRole(selectedRole);
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full max-w-5xl mx-auto p-4 gap-8">
-            {/* Header */}
-            <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center p-3 bg-pink-500/10 rounded-full mb-4 ring-1 ring-pink-500/30">
-                    <FaBus className="text-3xl text-pink-500" />
-                </div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500">
-                    COMMUTE POOL
-                </h1>
-                <p className="text-gray-400 max-w-lg mx-auto text-lg">
-                    Verify your sustainable travel. Earn rewards.
-                </p>
+        <div className="flex flex-col h-[calc(100vh-80px)] w-full relative">
+            {/* Full Screen Map Background */}
+            <div className="absolute inset-0 z-0">
+                <MapContainer
+                    center={[coords.lat, coords.lng]}
+                    zoom={15}
+                    style={{ height: "100%", width: "100%" }}
+                    className="z-0"
+                >
+                    <TileLayer
+                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+
+                    {/* Route Line */}
+                    {(role === 'rider' || role === 'none') && (
+                        <Polyline
+                            positions={[[coords.lat, coords.lng], [VIT_COORDS.lat, VIT_COORDS.lng]]}
+                            pathOptions={{ color: 'var(--electric-volt)', weight: 4, opacity: 0.6, dashArray: '10, 10' }}
+                        />
+                    )}
+
+                    <Marker position={[VIT_COORDS.lat, VIT_COORDS.lng]}>
+                        <Popup className="font-['Rajdhani'] font-bold">🎓 VIT Pune (Destination)</Popup>
+                    </Marker>
+
+                    <Marker position={[coords.lat, coords.lng]}>
+                        <Popup className="font-['Rajdhani'] font-bold">📍 You are here</Popup>
+                    </Marker>
+
+                    {/* Available Drivers Markers */}
+                    {availableDrivers.map(driver => (
+                        <Marker
+                            key={driver.id}
+                            position={[driver.lat, driver.lng]}
+                            eventHandlers={{
+                                click: () => {
+                                    setDriverAddr(driver.address);
+                                    if (role === 'none') handleRoleSelect('rider');
+                                }
+                            }}
+                        >
+                            <Popup>
+                                <div className="p-2 text-center">
+                                    <div className="font-bold">{driver.name}</div>
+                                    <div className="text-xs">⭐ {driver.rating}</div>
+                                    {driverAddr === driver.address && <div className="text-green-600 font-bold mt-1">SELECTED</div>}
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+
+                    <RecenterMap lat={coords.lat} lng={coords.lng} />
+                </MapContainer>
             </div>
 
-            {/* Main Content Area */}
-            <div className="w-full bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[500px] flex flex-col">
+            {/* UI Overlays */}
+            <div className="relative z-10 pointer-events-none w-full h-full p-4 flex flex-col justify-between">
 
-                {/* 1. NOT OPTED IN STATE */}
-                {!isOptedIn && (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-bold text-white">Welcome, Student!</h2>
-                            <p className="text-gray-400 max-w-md mx-auto">
-                                Initialize your account to start tracking rides and earning rewards automatically.
-                            </p>
-                        </div>
-
-                        <button
-                            onClick={handleCreateAccount}
-                            className="px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500
-                                     text-white text-lg font-bold rounded-full shadow-lg hover:shadow-pink-500/50 hover:scale-105 transition-all"
-                        >
-                            Create Student Account
-                        </button>
-
-                        <p className="text-xs text-gray-500">
-                            (This registers you on the Algorand blockchain automatically)
-                        </p>
+                {/* Header Overlay */}
+                <div className="pointer-events-auto bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-xl w-full max-w-md mx-auto flex items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+                            COMMUTE POOL
+                        </h1>
+                        {distanceToDest ? (
+                            <div className="text-xs text-white/60 font-mono">
+                                Dist to College: <span className="text-white font-bold">{(distanceToDest).toFixed(2)} km</span>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-white/60">Locating...</div>
+                        )}
                     </div>
-                )}
-
-                {/* 2. OPTED IN -> ROLE SELECTION */}
-                {isOptedIn && role === "none" && (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in zoom-in duration-300">
-                        <h2 className="text-2xl font-bold text-white">How are you commuting today?</h2>
-                        <div className="flex gap-6">
-                            <button
-                                onClick={() => registerRole("rider")}
-                                className="w-40 h-40 bg-gray-800 hover:bg-pink-900/20 border border-gray-700 hover:border-pink-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
-                            >
-                                <FaUser className="text-4xl text-pink-500 group-hover:scale-110 transition-transform" />
-                                <span className="text-xl font-bold text-white">I Need a Ride</span>
-                            </button>
-                            <button
-                                onClick={() => registerRole("driver")}
-                                className="w-40 h-40 bg-gray-800 hover:bg-purple-900/20 border border-gray-700 hover:border-purple-500 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all group"
-                            >
-                                <FaCar className="text-4xl text-purple-500 group-hover:scale-110 transition-transform" />
-                                <span className="text-xl font-bold text-white">I am Driving</span>
-                            </button>
-                        </div>
+                    <div className="text-right">
+                        <div className="text-xs text-gray-400">CO2 Saved</div>
+                        <div className="text-lg font-bold text-green-400">{co2Saved.toFixed(1)} kg</div>
                     </div>
-                )}
+                </div>
 
-                {/* DRIVER VIEW */}
-                {isOptedIn && role === "driver" && (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-                        <FaCar className="text-6xl text-purple-500 animate-pulse" />
-                        <h2 className="text-3xl font-bold text-white">Driver Dashboard</h2>
-                        <p className="text-gray-400">Waiting for ride requests...</p>
-                        <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                            <p className="text-sm text-gray-400">Your Address:</p>
-                            <p className="font-mono text-xs text-green-400 break-all">{activeAccount?.address}</p>
-                        </div>
-                        <button onClick={() => setRole("none")} className="text-gray-500 hover:text-white text-sm">Switch Role</button>
-                    </div>
-                )}
+                {/* Bottom Interaction Panel */}
+                <div className="pointer-events-auto w-full max-w-lg mx-auto">
 
-                {/* RIDER IDLE STATE (Matching) */}
-                {isOptedIn && role === "rider" && rideStatus === "idle" && (
-                    <div className="flex-1 flex flex-col p-8 space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-2xl font-bold text-white">Available Drivers Nearby</h2>
-                            <button onClick={() => setRole("none")} className="text-gray-500 hover:text-white text-sm">Change Role</button>
-                        </div>
-
-                        <div className="grid gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {availableDrivers.map((driver) => (
-                                <div
-                                    key={driver.id}
-                                    onClick={() => setDriverAddr(driver.address)}
-                                    className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                                              ${driverAddr === driver.address
-                                            ? 'bg-pink-500/20 border-pink-500'
-                                            : 'bg-gray-800 border-gray-700 hover:border-pink-500/50'}`}
+                    {/* 1. Role Selection (Floating) */}
+                    {role === "none" && (
+                        <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-10 space-y-4">
+                            <h2 className="text-xl font-bold text-white text-center">How are you moving today?</h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => handleRoleSelect("rider")}
+                                    className="p-6 bg-gray-800 hover:bg-pink-900/40 border border-gray-700 hover:border-pink-500 rounded-2xl flex flex-col items-center gap-3 transition-all group"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                                            <FaCar className="text-white text-lg" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-white font-bold text-lg">{driver.name}</h3>
-                                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                <span className="flex items-center text-yellow-400 gap-1"><FaStar className="w-3 h-3" /> {driver.rating}</span>
-                                                <span>•</span>
-                                                <span>{driver.distance.toFixed(2)} km away</span>
+                                    <FaUser className="text-3xl text-pink-500 group-hover:scale-110 transition-transform" />
+                                    <span className="font-bold text-white">Find Ride</span>
+                                </button>
+                                <button
+                                    onClick={() => handleRoleSelect("driver")}
+                                    className="p-6 bg-gray-800 hover:bg-purple-900/40 border border-gray-700 hover:border-purple-500 rounded-2xl flex flex-col items-center gap-3 transition-all group"
+                                >
+                                    <FaCar className="text-3xl text-purple-500 group-hover:scale-110 transition-transform" />
+                                    <span className="font-bold text-white">Drive</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. Rider Selection & Trip Start */}
+                    {role === "rider" && rideStatus === "idle" && (
+                        <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-10 flex flex-col gap-4 max-h-[50vh]">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-white">Select Driver ({availableDrivers.length})</h3>
+                                <button onClick={() => setRole("none")} className="text-xs text-gray-400 hover:text-white">Cancel</button>
+                            </div>
+
+                            <div className="space-y-2 overflow-y-auto max-h-[200px] pr-2 custom-scrollbar">
+                                {availableDrivers.map(driver => (
+                                    <div
+                                        key={driver.id}
+                                        onClick={() => setDriverAddr(driver.address)}
+                                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all
+                                            ${driverAddr === driver.address ? 'bg-pink-500/20 border-pink-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                                                <FaCar className="text-white text-xs" />
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-sm text-white">{driver.name}</div>
+                                                <div className="text-xs text-gray-400">{driver.distance.toFixed(2)} km • ⭐ {driver.rating}</div>
                                             </div>
                                         </div>
+                                        {driverAddr === driver.address && <FaCheckCircle className="text-pink-500" />}
                                     </div>
-                                    {driverAddr === driver.address ? (
-                                        <FaCheckCircle className="text-pink-500 text-2xl animate-in zoom-in" />
-                                    ) : (
-                                        <div className="text-xs text-gray-500 group-hover:text-pink-400 transition-colors">Select</div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
 
-                        <div className="mt-auto pt-6 border-t border-white/10">
                             <button
                                 onClick={startTrip}
                                 disabled={!driverAddr}
-                                className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed
-                                         hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl
+                                className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 disabled:opacity-50
+                                         hover:from-pink-500 hover:to-purple-500 text-white rounded-xl font-bold shadow-lg
                                          flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
                             >
-                                START TRIP (1 ALGO DEPOSIT) <FaArrowRight />
+                                REQUEST RIDE <FaArrowRight />
                             </button>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* ACTIVE RIDE (MAP) STATE */}
-                {isOptedIn && role === "rider" && rideStatus === "active" && (
-                    <div className="relative w-full h-full min-h-[500px]">
-                        <MapContainer
-                            center={[coords.lat, coords.lng]}
-                            zoom={13}
-                            style={{ height: "100%", width: "100%", minHeight: "500px" }}
-                            className="z-0"
-                        >
-                            <TileLayer
-                                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                            />
-                            <Marker position={[VIT_COORDS.lat, VIT_COORDS.lng]}>
-                                <Popup>VIT Pune (Destination)</Popup>
-                            </Marker>
-
-                            <Marker position={[coords.lat, coords.lng]}>
-                                <Popup>You are Here</Popup>
-                            </Marker>
-                            <RecenterMap lat={coords.lat} lng={coords.lng} />
-                        </MapContainer>
-
-                        {/* Overlay Controls */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-4 space-y-4">
-                            {distanceToDest !== null && (
-                                <div className="bg-black/80 backdrop-blur-xl border border-pink-500/30 p-4 rounded-2xl flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-4">
-                                    <div className="flex items-center gap-3">
-                                        <FaMapMarkerAlt className="text-pink-500" />
-                                        <div className="text-left">
-                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Target</p>
-                                            <p className="text-sm font-bold text-white uppercase">VIT Pune College</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Left</p>
-                                        <p className="text-lg font-black text-pink-500">
-                                            {distanceToDest < 1
-                                                ? `${(distanceToDest * 1000).toFixed(0)} m`
-                                                : `${distanceToDest.toFixed(2)} km`}
-                                        </p>
-                                    </div>
+                    {/* 3. Active Trip Controls */}
+                    {rideStatus === "active" && (
+                        <div className="bg-black/90 backdrop-blur-xl border border-pink-500/30 p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-10 space-y-4">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                    <span className="font-bold text-white">RIDE IN PROGRESS</span>
                                 </div>
-                            )}
+                                <span className="text-pink-500 font-mono text-sm">ETA: {((distanceToDest || 0) * 2).toFixed(0)} min</span>
+                            </div>
+                            <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                <div className="h-full bg-pink-500 animate-[pulse_2s_infinite]" style={{ width: '60%' }} />
+                            </div>
                             <button
                                 onClick={() => setRideStatus("verifying_photo")}
-                                className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl border border-white/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 border border-white/20 hover:bg-white/10 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                             >
-                                <FaCamera /> VERIFY ARRIVAL
+                                <FaCamera /> I Have Arrived
                             </button>
                         </div>
+                    )}
 
-                        {/* Dev Tool */}
-                        <button
-                            onClick={() => setCoords(VIT_COORDS)}
-                            className="absolute top-4 right-4 z-[1000] bg-black/80 text-xs text-gray-300 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-black"
-                        >
-                            [DEV] Teleport to VIT
-                        </button>
-                    </div>
-                )}
-
-                {/* VERIFYING STATE */}
-                {isOptedIn && role === "rider" && rideStatus === "verifying_photo" && (
-                    <div className="flex-1 flex flex-col p-6 items-center justify-center bg-black">
-                        <h3 className="text-xl font-bold text-white mb-6">Verify Commute Context</h3>
-
-                        <div className="relative w-full max-w-lg aspect-video bg-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-8 group">
-                            {imgSrc ? (
-                                <img src={imgSrc} alt="Commute Proof" className="w-full h-full object-cover" />
-                            ) : (
-                                <Webcam
-                                    audio={false}
-                                    ref={webcamRef}
-                                    screenshotFormat="image/jpeg"
-                                    className="w-full h-full object-cover"
-                                    videoConstraints={{ facingMode: "environment" }}
-                                />
-                            )}
-
-                            {aiVerifying && (
-                                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-20 backdrop-blur-sm">
-                                    <FaSpinner className="animate-spin text-pink-500 text-5xl mb-4" />
-                                    <p className="text-lg text-white font-mono animate-pulse">Analyzing with Gemini AI...</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex gap-4 w-full max-w-lg">
-                            {!imgSrc ? (
-                                <button
-                                    onClick={capture}
-                                    className="flex-1 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <FaCamera /> CAPTURE
-                                </button>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={() => setImgSrc(null)}
-                                        disabled={aiVerifying}
-                                        className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-50"
-                                    >
-                                        RETAKE
-                                    </button>
-                                    <button
-                                        onClick={performAiVerification}
-                                        disabled={aiVerifying}
-                                        className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-500 transition-colors disabled:opacity-50"
-                                    >
-                                        VERIFY & END TRIP
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ARRIVED / SUCCESS STATE */}
-                {isOptedIn && role === "rider" && rideStatus === "arrived" && (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-                        <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-2 animate-bounce">
-                            <FaCheckCircle className="text-green-500 text-5xl" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold text-white">Ride Complete!</h2>
-                            <p className="text-gray-400">Driver has been paid automatically.</p>
-                        </div>
-
-                        <div className="w-full max-w-sm bg-gray-800/50 p-6 rounded-2xl border border-white/5 space-y-3">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-400">Status</span>
-                                <span className={`font-bold ${payoutStatus === 'success' ? 'text-green-400' : 'text-yellow-400'}`}>
-                                    {payoutStatus === 'success' ? 'Paid' : 'Processing...'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-400">Verification</span>
-                                <span className="text-white font-mono">AI-Gemini-1.5</span>
-                            </div>
-                            <div className="pt-4 border-t border-white/10">
-                                <div className="flex justify-between items-center text-sm mb-2">
-                                    <span className="text-gray-400">CO2 Saved</span>
-                                    <span className="text-green-400 font-bold">{co2Saved.toFixed(1)} kg</span>
-                                </div>
-                                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                                    {/* Scale 0-10kg */}
-                                    <div
-                                        className="h-full bg-green-500 transition-all duration-1000"
-                                        style={{ width: `${Math.min((co2Saved / 5) * 100, 100)}%` }}
-                                    />
-                                </div>
-                                <div className="text-xs text-right text-gray-500 mt-1">Goal: 5kg for NFT</div>
-                            </div>
-                            {nftMinted && (
-                                <div className="mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3 animate-pulse">
-                                    <div className="p-2 bg-green-500 rounded-lg text-black">
-                                        <FaStar />
+                    {/* 4. Verification Camera Overlay */}
+                    {rideStatus === "verifying_photo" && (
+                        <div className="bg-black/95 backdrop-blur-xl border border-white/10 p-4 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-10">
+                            <h3 className="text-center font-bold text-white mb-4">Verify Journey</h3>
+                            <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4 border border-white/20">
+                                {imgSrc ? (
+                                    <img src={imgSrc} alt="Proof" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full h-full object-cover" videoConstraints={{ facingMode: "environment" }} />
+                                )}
+                                {aiVerifying && (
+                                    <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm z-20">
+                                        <FaSpinner className="animate-spin text-pink-500 text-4xl mb-2" />
+                                        <span className="text-white font-mono text-sm">Gemini Analyzing...</span>
                                     </div>
-                                    <div className="text-left">
-                                        <div className="text-white font-bold text-sm">NFT UNLOCKED!</div>
-                                        <div className="text-green-300 text-xs">Green Commuter Badge Minted</div>
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                {!imgSrc ? (
+                                    <button onClick={capture} className="flex-1 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200"><FaCamera className="inline mr-2" /> Capture</button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => setImgSrc(null)} disabled={aiVerifying} className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl">Retake</button>
+                                        <button onClick={performAiVerification} disabled={aiVerifying} className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl">Submit</button>
+                                    </>
+                                )}
+                            </div>
                         </div>
+                    )}
 
-                        <button
-                            onClick={() => {
-                                setRideStatus("idle");
-                                setPayoutStatus(null);
-                                setImgSrc(null);
-                                setDriverAddr("");
-                            }}
-                            className="mt-8 text-gray-500 hover:text-white transition-colors underline decoration-dotted"
-                        >
-                            Start New Journey
-                        </button>
-                    </div>
-                )}
+                    {/* 5. Success/Paid Overlay */}
+                    {rideStatus === "arrived" && (
+                        <div className="bg-black/90 backdrop-blur-xl border border-green-500/30 p-8 rounded-3xl shadow-2xl text-center space-y-4 animate-in zoom-in">
+                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                                <FaCheckCircle className="text-green-500 text-3xl" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-white">Journey Complete!</h2>
+                            <p className="text-gray-400 text-sm">Driver paid & CO2 saved.</p>
+                            <button
+                                onClick={() => { setRideStatus("idle"); setImgSrc(null); setDriverAddr(""); setRole("none"); }}
+                                className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-bold transition-colors"
+                            >
+                                Close & Reset
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

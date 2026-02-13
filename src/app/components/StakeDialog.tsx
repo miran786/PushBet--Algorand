@@ -60,7 +60,7 @@ export function StakeDialog({ open, onOpenChange, onStakeSuccess, mode = 'SOLO' 
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: activeAccount.address,
-        receiver: "HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUC35DQYIJCKQKZQ", // House Wallet (Testnet)
+        receiver: "BSAWKZW5UMSYL7JGGVHT72RN7WMEEAV5KXWATHVZDEQ67EHWFYN6QB5Z4I", // House Wallet (Testnet)
         amount: amountMicroAlgos,
         suggestedParams: params,
         note: new TextEncoder().encode(noteContent),

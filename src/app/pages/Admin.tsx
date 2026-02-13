@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { useWallet } from "@txnlab/use-wallet-react";
 
 // House Wallet Address (Testnet)
-const HOUSE_WALLET_ADDRESS = "HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUC35DQYIJCKQKZQ";
+const HOUSE_WALLET_ADDRESS = "BSAWKZW5UMSYL7JGGVHT72RN7WMEEAV5KXWATHVZDEQ67EHWFYN6QB5Z4I";
 
 export function Admin() {
   const { activeAccount } = useWallet();

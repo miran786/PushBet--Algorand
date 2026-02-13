@@ -17,4 +17,7 @@ router.post("/needs/:id/claim", ctrl.claimNeed);
 // Submit proof for AI verification
 router.post("/needs/:id/submit-proof", ctrl.submitProof);
 
+// Chat negotiation
+router.post("/chat", ctrl.chat);
+
 module.exports = router;

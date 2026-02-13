@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const needSchema = new mongoose.Schema({
     requesterWallet: { type: String, required: true },
+    escrowTxId: { type: String }, // Transaction ID
     description: { type: String, required: true },
     reward: { type: Number, required: true },
     status: {

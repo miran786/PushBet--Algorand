@@ -1,25 +1,15 @@
 const Need = require("../models/Need");
 const Claim = require("../models/Claim");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Use server-side env or fallback
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-
-// Helper: get Gemini model
+// Mock Gemini Model (Always returns null since we are in demo mode)
 function getGeminiModel() {
-    if (!GEMINI_API_KEY) {
-        console.warn("[Marketplace] No GEMINI_API_KEY set — AI features disabled");
-        return null;
-    }
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    return genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    return null;
 }
 
 // POST /needs — Create a new need
 exports.createNeed = async (req, res) => {
     try {
-        const { description, reward, requesterWallet } = req.body;
-
+        const { description, reward, requesterWallet, escrowTxId } = req.body;
         if (!description || !reward || !requesterWallet) {
             return res.status(400).json({ success: false, message: "description, reward, and requesterWallet are required" });
         }
@@ -27,35 +17,9 @@ exports.createNeed = async (req, res) => {
         let category = "general";
         let aiTerms = "Submit a photo or description as proof of completion.";
 
-        // Use Gemini to analyze the need and generate terms
-        const model = getGeminiModel();
-        if (model) {
-            try {
-                const prompt = `You are an AI contract builder for a campus marketplace. A student has posted this need:
-"${description}"
-
-Analyze this need and respond with ONLY valid JSON (no markdown, no code blocks):
-{
-  "category": "one of: lost_item, notes, errand, tutoring, transport, food, electronics, other",
-  "terms": "A clear, specific description of what proof the fulfiller must submit to verify they completed this need. Be specific about what photo or evidence is needed."
-}`;
-
-                const result = await model.generateContent(prompt);
-                const text = result.response.text();
-                const jsonMatch = text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    category = parsed.category || "general";
-                    aiTerms = parsed.terms || aiTerms;
-                }
-            } catch (aiErr) {
-                console.error("[Marketplace] Gemini error:", aiErr.message);
-                // Proceed with defaults
-            }
-        }
-
         const need = await Need.create({
             requesterWallet,
+            escrowTxId, // Save TxID
             description,
             reward,
             category,
@@ -65,7 +29,7 @@ Analyze this need and respond with ONLY valid JSON (no markdown, no code blocks)
         res.json({
             success: true,
             need,
-            message: "Need created with AI-generated terms"
+            message: "Need created (Mock AI)"
         });
     } catch (err) {
         console.error("[Marketplace] createNeed error:", err);
@@ -136,93 +100,70 @@ exports.submitProof = async (req, res) => {
 
         const need = await Need.findById(req.params.id);
         if (!need) return res.status(404).json({ success: false, message: "Need not found" });
-        if (need.status !== "claimed") {
-            return res.status(400).json({ success: false, message: "Need must be claimed before submitting proof" });
-        }
-        if (need.claimedBy !== claimerWallet) {
-            return res.status(400).json({ success: false, message: "Only the claimer can submit proof" });
-        }
+        if (need.status !== "claimed") return res.status(400).json({ success: false, message: "Need must be claimed first" });
 
         let aiVerified = false;
-        let aiConfidence = 0;
-        let aiReason = "AI verification unavailable — defaulting to manual review.";
+        let aiReason = "Mock Mode: Manual verification required.";
 
-        // Use Gemini to verify the proof
-        const model = getGeminiModel();
-        if (model) {
-            try {
-                const parts = [];
-
-                const textPrompt = `You are an AI verification oracle for a campus marketplace smart contract.
-
-ORIGINAL NEED: "${need.description}"
-REQUIRED PROOF (AI-generated terms): "${need.aiTerms}"
-SUBMITTED PROOF DESCRIPTION: "${proofDescription}"
-
-${proofImage ? "A proof image has also been submitted (see attached)." : "No proof image was submitted."}
-
-Analyze whether the submitted proof satisfactorily fulfills the original need according to the required terms.
-Respond with ONLY valid JSON (no markdown, no code blocks):
-{
-  "verified": true or false,
-  "confidence": 0.0 to 1.0,
-  "reason": "Brief explanation of your verification decision"
-}`;
-
-                parts.push(textPrompt);
-
-                // If proof image is a base64 data URL, send it to Gemini
-                if (proofImage && proofImage.startsWith("data:image")) {
-                    const base64Data = proofImage.split(",")[1];
-                    const mimeType = proofImage.split(";")[0].split(":")[1];
-                    parts.push({
-                        inlineData: { data: base64Data, mimeType: mimeType || "image/jpeg" }
-                    });
-                }
-
-                const result = await model.generateContent(parts);
-                const text = result.response.text();
-                const jsonMatch = text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    aiVerified = parsed.verified === true && (parsed.confidence || 0) > 0.7;
-                    aiConfidence = parsed.confidence || 0;
-                    aiReason = parsed.reason || "No reason provided";
-                }
-            } catch (aiErr) {
-                console.error("[Marketplace] Gemini verification error:", aiErr.message);
-            }
-        }
-
-        // Create the claim record
         const claim = await Claim.create({
             needId: need._id,
             claimerWallet,
             proofDescription,
             proofImage: proofImage ? "(image submitted)" : "",
             aiVerified,
-            aiConfidence,
             aiReason
         });
-
-        // If verified, mark need as completed
-        if (aiVerified) {
-            need.status = "completed";
-            await need.save();
-        }
 
         res.json({
             success: true,
             verified: aiVerified,
-            confidence: aiConfidence,
-            reason: aiReason,
             claim,
-            message: aiVerified
-                ? "✅ Proof verified! Payment can be released."
-                : "❌ Proof not verified. " + aiReason
+            message: "Proof submitted (Mock AI)"
         });
     } catch (err) {
         console.error("[Marketplace] submitProof error:", err);
         res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// POST /chat — Mock Demo Version
+exports.chat = async (req, res) => {
+    try {
+        const { messages } = req.body;
+        const userMsgs = messages.filter(m => m.role === 'user');
+        const count = userMsgs.length;
+        const lastMsg = userMsgs[userMsgs.length - 1].content;
+
+        let reply = "";
+        let contract = null;
+
+        // Specific Demo Script Requested by User:
+        // 1. User: "I need textbook of CS-AI Branch of Networking"
+        // 2. AI: "Ok, how much token are you offering ??"
+        // 3. User: "10"
+        // 4. AI: Contract + Payment
+
+        if (count === 1) {
+            // First reply
+            reply = "Ok, how much token are you offering ??";
+        } else {
+            // Second reply (or any subsequent) -> Finalize with "10" tokens
+            reply = "Perfect! I have generated a smart contract based on your requirements. Please review and sign below.";
+
+            // Extract reward from message (e.g. "10")
+            const rewardMatch = lastMsg.match(/(\d+)/);
+            const reward = rewardMatch ? parseFloat(rewardMatch[0]) : 10;
+
+            contract = {
+                description: userMsgs[0].content, // "textbook of CS-AI..."
+                reward: reward,
+                category: "textbook"
+            };
+        }
+
+        res.json({ success: true, reply, contract });
+    } catch (err) {
+        console.error("[Marketplace] Chat error:", err);
+        res.status(500).json({ success: false, message: "Chat Error: " + err.message });
     }
 };

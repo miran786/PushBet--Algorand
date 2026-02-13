@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@txnlab/use-wallet-react";
+import algosdk from "algosdk";
 import { toast } from "sonner";
 import { FaRobot, FaBrain, FaLock, FaCheckCircle, FaTimes, FaCamera, FaCoins, FaClock, FaArrowRight } from "react-icons/fa";
+import { MarketplaceChat } from "../components/MarketplaceChat";
 
 const API = "http://localhost:8000/api/marketplace";
 
@@ -31,7 +33,7 @@ interface Need {
 }
 
 export function Marketplace() {
-    const { activeAccount } = useWallet();
+    const { activeAccount, signTransactions } = useWallet();
     const [activeTab, setActiveTab] = useState<"browse" | "post">("browse");
     const [needs, setNeeds] = useState<Need[]>([]);
 
@@ -66,11 +68,38 @@ export function Marketplace() {
 
     // Post a new need
     const handlePostNeed = async () => {
-        if (!needDescription.trim()) return toast.error("Describe what you need!");
         if (!activeAccount) return toast.error("Connect your wallet first!");
+        if (!needDescription.trim()) return toast.error("Describe what you need!");
 
         setIsPosting(true);
         try {
+            // 1. Payment Transaction (Deposit Reward)
+            const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+            const params = await algodClient.getTransactionParams().do();
+            const rewardMicroAlgos = Math.floor((parseFloat(needReward) || 1) * 1000000);
+
+            // House Wallet for Escrow
+            const HOUSE_WALLET = "BSAWKZW5UMSYL7JGGVHT72RN7WMEEAV5KXWATHVZDEQ67EHWFYN6QB5Z4I";
+
+            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+                sender: activeAccount.address,
+                receiver: HOUSE_WALLET,
+                amount: rewardMicroAlgos,
+                note: new TextEncoder().encode(`AI Marketplace Bounty: ${needDescription.substring(0, 20)}...`),
+                suggestedParams: params
+            });
+
+            const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+            toast.info("Please sign the transaction to deposit the reward.");
+            const signedTxns = await signTransactions([encodedTxn]);
+            const filteredSignedTxns = signedTxns.filter((t): t is Uint8Array => t !== null);
+
+            const response = await algodClient.sendRawTransaction(filteredSignedTxns).do();
+            const txId = response.txid;
+            toast.info("Transaction sent! Waiting for confirmation...");
+            await algosdk.waitForConfirmation(algodClient, txId, 4);
+
+            // 2. Create Need in Backend
             const res = await fetch(`${API}/needs`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -78,18 +107,20 @@ export function Marketplace() {
                     description: needDescription,
                     reward: parseFloat(needReward) || 1,
                     requesterWallet: activeAccount.address,
+                    escrowTxId: txId // Send TxID to backend
                 }),
             });
             const data = await res.json();
             if (data.success) {
                 setAiResponse({ category: data.need.category, terms: data.need.aiTerms });
                 setPostStep("review");
-                toast.success("AI analyzed your need!");
+                toast.success("AI analyzed your need! Reward deposited.");
             } else {
                 toast.error(data.message || "Failed to post need");
             }
-        } catch {
-            toast.error("Server error.");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to post need (Transaction or Server Error).");
         } finally {
             setIsPosting(false);
         }
@@ -194,8 +225,8 @@ export function Marketplace() {
                 <h1 className="text-4xl font-black italic flex items-center gap-3">
                     <FaBrain className="text-[var(--neon-purple)]" /> AI MARKETPLACE
                 </h1>
-                <p className="text-gray-400 mt-1">
-                    Describe any need. AI builds the contract. Algorand pays on proof.
+                <p className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 mt-4 max-w-4xl leading-relaxed italic border-l-4 border-pink-500 pl-6 py-4 bg-white/5 rounded-r-xl shadow-lg backdrop-blur-sm">
+                    "You can contract anything—sky is the limit. AI builds the contract. Algorand pays on proof."
                 </p>
 
                 {/* Tabs */}
@@ -242,58 +273,29 @@ export function Marketplace() {
                             {/* Step 1: Describe */}
                             {postStep === "describe" && (
                                 <>
-                                    <div className="bg-gray-800/50 rounded-2xl p-4 border border-white/5">
-                                        <p className="text-gray-300 text-sm mb-1">
-                                            <FaRobot className="inline mr-2 text-purple-400" />
-                                            What do you need? Describe it in plain English.
-                                        </p>
-                                        <p className="text-[10px] text-gray-500">
-                                            Examples: "find my lost keys near the library", "need 2024 calculus notes", "someone to pick up my package"
-                                        </p>
-                                    </div>
-
-                                    <textarea
-                                        value={needDescription}
-                                        onChange={(e) => setNeedDescription(e.target.value)}
-                                        placeholder="Describe what you need..."
-                                        rows={3}
-                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-all resize-none"
+                                    <MarketplaceChat
+                                        onContractReady={(need) => {
+                                            setNeedDescription(need.description);
+                                            setNeedReward(need.reward.toString());
+                                            toast.success("Contract terms finalized! Review and Pay.");
+                                        }}
                                     />
 
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-2 uppercase font-black tracking-wider">
-                                            Reward (ALGO)
-                                        </label>
-                                        <div className="relative">
-                                            <FaCoins className="absolute left-3 top-3.5 text-yellow-500" />
-                                            <input
-                                                type="number"
-                                                value={needReward}
-                                                onChange={(e) => setNeedReward(e.target.value)}
-                                                placeholder="5"
-                                                min="0.1"
-                                                step="0.1"
-                                                className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-yellow-500 outline-none transition-all"
-                                            />
+                                    {/* Confirmation Actions */}
+                                    {needDescription && needReward && (
+                                        <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-xl animate-fade-in">
+                                            <h4 className="text-green-400 font-bold mb-2">Contract Ready to Sign</h4>
+                                            <p className="text-sm text-gray-300 mb-4">{needDescription} ({needReward} ALGO)</p>
+                                            <button
+                                                onClick={handlePostNeed}
+                                                disabled={isPosting}
+                                                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-black font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                {isPosting ? <div className="animate-spin text-xl">⏳</div> : <FaBrain />}
+                                                SIGN & DEPOSIT {needReward} ALGO
+                                            </button>
                                         </div>
-                                    </div>
-
-                                    <button
-                                        onClick={handlePostNeed}
-                                        disabled={isPosting || !needDescription.trim()}
-                                        className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isPosting ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                AI Analyzing Your Need...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <FaBrain /> GENERATE AI CONTRACT
-                                            </>
-                                        )}
-                                    </button>
+                                    )}
                                 </>
                             )}
 
@@ -358,251 +360,256 @@ export function Marketplace() {
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* ═══════════════ BROWSE NEEDS TAB ═══════════════ */}
-            {activeTab === "browse" && (
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm text-gray-500">{needs.length} active need{needs.length !== 1 ? "s" : ""}</p>
-                        <button onClick={fetchNeeds} className="text-xs bg-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-400">
-                            Refresh
-                        </button>
-                    </div>
-
-                    {needs.length === 0 ? (
-                        <div className="text-center py-20 text-gray-500">
-                            <FaRobot className="text-5xl mx-auto mb-4 opacity-30" />
-                            <p className="text-lg font-bold">No open needs yet.</p>
-                            <p className="text-sm mt-1">Be the first to post one!</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {needs.map((need) => (
-                                <div
-                                    key={need._id}
-                                    className="group bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/5"
-                                >
-                                    {/* Category & Timer */}
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl">{cat(need.category).icon}</span>
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${cat(need.category).color}`}>
-                                                {need.category.replace("_", " ")}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-[10px] text-gray-500">
-                                            <FaClock />
-                                            {getTimeRemaining(need.expiresAt)}
-                                        </div>
-                                    </div>
-
-                                    {/* Description */}
-                                    <p className="text-white font-medium text-sm mb-3 leading-relaxed line-clamp-3">
-                                        {need.description}
-                                    </p>
-
-                                    {/* AI Terms (collapsible) */}
-                                    <details className="mb-4">
-                                        <summary className="text-[10px] text-purple-400 uppercase font-black tracking-wider cursor-pointer hover:text-purple-300 transition-colors">
-                                            AI Contract Terms ▸
-                                        </summary>
-                                        <p className="text-xs text-gray-400 mt-2 leading-relaxed bg-black/30 rounded-lg p-3 border border-purple-500/10">
-                                            {need.aiTerms}
-                                        </p>
-                                    </details>
-
-                                    {/* Reward & Requester */}
-                                    <div className="flex justify-between items-end mb-4">
-                                        <div>
-                                            <p className="text-[10px] text-gray-500 uppercase font-black">Reward</p>
-                                            <p className="text-xl font-black text-[var(--electric-volt)]">
-                                                {need.reward} <span className="text-xs text-gray-500">ALGO</span>
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] text-gray-500 uppercase font-black">Posted by</p>
-                                            <p className="text-[10px] font-mono text-gray-400">
-                                                {need.requesterWallet.slice(0, 6)}...{need.requesterWallet.slice(-4)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Button */}
-                                    {need.status === "open" ? (
-                                        <button
-                                            onClick={() => handleClaim(need)}
-                                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10"
-                                        >
-                                            ACCEPT & FULFILL <FaArrowRight />
-                                        </button>
-                                    ) : need.status === "claimed" && need.claimedBy === activeAccount?.address ? (
-                                        <button
-                                            onClick={() => {
-                                                setSelectedNeed(need);
-                                                setVerificationResult(null);
-                                                setProofDescription("");
-                                                setProofImage("");
-                                            }}
-                                            className="w-full py-3 bg-[var(--electric-volt)] text-black font-bold rounded-xl hover:bg-yellow-400 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            SUBMIT PROOF <FaCamera />
-                                        </button>
-                                    ) : need.status === "claimed" ? (
-                                        <div className="w-full py-3 bg-gray-800 text-gray-500 font-bold rounded-xl text-center text-sm">
-                                            Claimed by another student
-                                        </div>
-                                    ) : (
-                                        <div className="w-full py-3 bg-green-900/30 text-green-400 font-bold rounded-xl text-center text-sm border border-green-500/20">
-                                            ✅ Completed
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* ═══════════════ PROOF SUBMISSION MODAL ═══════════════ */}
-            {selectedNeed && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-lg bg-gray-900 border border-purple-500/30 rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="p-5 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-b border-white/10 flex items-center justify-between sticky top-0 z-10">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-purple-500 rounded-lg text-white">
-                                    <FaBrain />
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-bold text-sm">Submit Proof</h3>
-                                    <p className="text-[10px] text-purple-300 uppercase font-black tracking-widest">
-                                        AI Verification Oracle
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => { setSelectedNeed(null); setVerificationResult(null); }}
-                                className="p-2 text-gray-400 hover:text-white transition-colors"
-                            >
-                                <FaTimes />
+            {
+                activeTab === "browse" && (
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-sm text-gray-500">{needs.length} active need{needs.length !== 1 ? "s" : ""}</p>
+                            <button onClick={fetchNeeds} className="text-xs bg-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-400">
+                                Refresh
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-5">
-                            {!verificationResult ? (
-                                <>
-                                    {/* Original Need */}
-                                    <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black mb-1">Original Need</p>
-                                        <p className="text-white text-sm">{selectedNeed.description}</p>
-                                    </div>
+                        {needs.length === 0 ? (
+                            <div className="text-center py-20 text-gray-500">
+                                <FaRobot className="text-5xl mx-auto mb-4 opacity-30" />
+                                <p className="text-lg font-bold">No open needs yet.</p>
+                                <p className="text-sm mt-1">Be the first to post one!</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {needs.map((need) => (
+                                    <div
+                                        key={need._id}
+                                        className="group bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/5"
+                                    >
+                                        {/* Category & Timer */}
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xl">{cat(need.category).icon}</span>
+                                                <span className={`text-[10px] font-black uppercase tracking-widest ${cat(need.category).color}`}>
+                                                    {need.category.replace("_", " ")}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                                                <FaClock />
+                                                {getTimeRemaining(need.expiresAt)}
+                                            </div>
+                                        </div>
 
-                                    {/* Required Proof */}
-                                    <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
-                                        <p className="text-[10px] text-purple-400 uppercase font-black mb-1 flex items-center gap-1">
-                                            <FaLock /> Required Proof
+                                        {/* Description */}
+                                        <p className="text-white font-medium text-sm mb-3 leading-relaxed line-clamp-3">
+                                            {need.description}
                                         </p>
-                                        <p className="text-gray-300 text-sm">{selectedNeed.aiTerms}</p>
-                                    </div>
 
-                                    {/* Proof Description */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-2 uppercase font-black tracking-wider">
-                                            Your Proof Description
-                                        </label>
-                                        <textarea
-                                            value={proofDescription}
-                                            onChange={(e) => setProofDescription(e.target.value)}
-                                            placeholder="Describe how you fulfilled this need..."
-                                            rows={3}
-                                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-all resize-none"
-                                        />
-                                    </div>
+                                        {/* AI Terms (collapsible) */}
+                                        <details className="mb-4">
+                                            <summary className="text-[10px] text-purple-400 uppercase font-black tracking-wider cursor-pointer hover:text-purple-300 transition-colors">
+                                                AI Contract Terms ▸
+                                            </summary>
+                                            <p className="text-xs text-gray-400 mt-2 leading-relaxed bg-black/30 rounded-lg p-3 border border-purple-500/10">
+                                                {need.aiTerms}
+                                            </p>
+                                        </details>
 
-                                    {/* Photo Upload */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-2 uppercase font-black tracking-wider">
-                                            Proof Photo (optional)
-                                        </label>
-                                        <label className="flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 transition-colors">
-                                            <FaCamera className="text-gray-500" />
-                                            <span className="text-sm text-gray-500">
-                                                {proofImage ? "✅ Photo attached" : "Click to upload photo"}
-                                            </span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleImageUpload}
-                                            />
-                                        </label>
-                                        {proofImage && (
-                                            <img src={proofImage} alt="proof" className="mt-2 w-full h-32 object-cover rounded-lg border border-white/10" />
+                                        {/* Reward & Requester */}
+                                        <div className="flex justify-between items-end mb-4">
+                                            <div>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black">Reward</p>
+                                                <p className="text-xl font-black text-[var(--electric-volt)]">
+                                                    {need.reward} <span className="text-xs text-gray-500">ALGO</span>
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[10px] text-gray-500 uppercase font-black">Posted by</p>
+                                                <p className="text-[10px] font-mono text-gray-400">
+                                                    {need.requesterWallet.slice(0, 6)}...{need.requesterWallet.slice(-4)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button */}
+                                        {need.status === "open" ? (
+                                            <button
+                                                onClick={() => handleClaim(need)}
+                                                className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10"
+                                            >
+                                                ACCEPT & FULFILL <FaArrowRight />
+                                            </button>
+                                        ) : need.status === "claimed" && need.claimedBy === activeAccount?.address ? (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedNeed(need);
+                                                    setVerificationResult(null);
+                                                    setProofDescription("");
+                                                    setProofImage("");
+                                                }}
+                                                className="w-full py-3 bg-[var(--electric-volt)] text-black font-bold rounded-xl hover:bg-yellow-400 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                SUBMIT PROOF <FaCamera />
+                                            </button>
+                                        ) : need.status === "claimed" ? (
+                                            <div className="w-full py-3 bg-gray-800 text-gray-500 font-bold rounded-xl text-center text-sm">
+                                                Claimed by another student
+                                            </div>
+                                        ) : (
+                                            <div className="w-full py-3 bg-green-900/30 text-green-400 font-bold rounded-xl text-center text-sm border border-green-500/20">
+                                                ✅ Completed
+                                            </div>
                                         )}
                                     </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
-                                    {/* Submit Button */}
-                                    <button
-                                        onClick={handleSubmitProof}
-                                        disabled={isSubmitting || !proofDescription.trim()}
-                                        className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isSubmitting ? (
+            {/* ═══════════════ PROOF SUBMISSION MODAL ═══════════════ */}
+            {
+                selectedNeed && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="w-full max-w-lg bg-gray-900 border border-purple-500/30 rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+                            {/* Modal Header */}
+                            <div className="p-5 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-b border-white/10 flex items-center justify-between sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-purple-500 rounded-lg text-white">
+                                        <FaBrain />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-bold text-sm">Submit Proof</h3>
+                                        <p className="text-[10px] text-purple-300 uppercase font-black tracking-widest">
+                                            AI Verification Oracle
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => { setSelectedNeed(null); setVerificationResult(null); }}
+                                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <FaTimes />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-5">
+                                {!verificationResult ? (
+                                    <>
+                                        {/* Original Need */}
+                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5">
+                                            <p className="text-[10px] text-gray-500 uppercase font-black mb-1">Original Need</p>
+                                            <p className="text-white text-sm">{selectedNeed.description}</p>
+                                        </div>
+
+                                        {/* Required Proof */}
+                                        <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+                                            <p className="text-[10px] text-purple-400 uppercase font-black mb-1 flex items-center gap-1">
+                                                <FaLock /> Required Proof
+                                            </p>
+                                            <p className="text-gray-300 text-sm">{selectedNeed.aiTerms}</p>
+                                        </div>
+
+                                        {/* Proof Description */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-2 uppercase font-black tracking-wider">
+                                                Your Proof Description
+                                            </label>
+                                            <textarea
+                                                value={proofDescription}
+                                                onChange={(e) => setProofDescription(e.target.value)}
+                                                placeholder="Describe how you fulfilled this need..."
+                                                rows={3}
+                                                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-all resize-none"
+                                            />
+                                        </div>
+
+                                        {/* Photo Upload */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-2 uppercase font-black tracking-wider">
+                                                Proof Photo (optional)
+                                            </label>
+                                            <label className="flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 transition-colors">
+                                                <FaCamera className="text-gray-500" />
+                                                <span className="text-sm text-gray-500">
+                                                    {proofImage ? "✅ Photo attached" : "Click to upload photo"}
+                                                </span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleImageUpload}
+                                                />
+                                            </label>
+                                            {proofImage && (
+                                                <img src={proofImage} alt="proof" className="mt-2 w-full h-32 object-cover rounded-lg border border-white/10" />
+                                            )}
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <button
+                                            onClick={handleSubmitProof}
+                                            disabled={isSubmitting || !proofDescription.trim()}
+                                            className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    AI Verifying Proof...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FaBrain /> SUBMIT FOR AI VERIFICATION
+                                                </>
+                                            )}
+                                        </button>
+                                    </>
+                                ) : (
+                                    /* Verification Result */
+                                    <div className="text-center py-6">
+                                        {verificationResult.verified ? (
                                             <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                AI Verifying Proof...
+                                                <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4 animate-bounce" />
+                                                <h3 className="text-2xl font-bold text-white mb-2">PROOF VERIFIED ✅</h3>
+                                                <p className="text-green-400 font-mono mb-4">
+                                                    Confidence: {(verificationResult.confidence * 100).toFixed(1)}%
+                                                </p>
+                                                <div className="bg-green-900/30 rounded-xl p-4 border border-green-500/20 mb-4">
+                                                    <p className="text-sm text-green-300">{verificationResult.reason}</p>
+                                                </div>
+                                                <div className="bg-[var(--electric-volt)]/10 rounded-xl p-4 border border-yellow-500/30">
+                                                    <p className="text-[var(--electric-volt)] font-bold text-lg">
+                                                        💰 {selectedNeed.reward} ALGO Released!
+                                                    </p>
+                                                </div>
                                             </>
                                         ) : (
                                             <>
-                                                <FaBrain /> SUBMIT FOR AI VERIFICATION
+                                                <FaTimes className="text-red-500 text-6xl mx-auto mb-4" />
+                                                <h3 className="text-2xl font-bold text-white mb-2">PROOF REJECTED ❌</h3>
+                                                <p className="text-red-400 font-mono mb-4">
+                                                    Confidence: {(verificationResult.confidence * 100).toFixed(1)}%
+                                                </p>
+                                                <div className="bg-red-900/30 rounded-xl p-4 border border-red-500/20 mb-4">
+                                                    <p className="text-sm text-red-300">{verificationResult.reason}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setVerificationResult(null)}
+                                                    className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors font-bold"
+                                                >
+                                                    Try Again
+                                                </button>
                                             </>
                                         )}
-                                    </button>
-                                </>
-                            ) : (
-                                /* Verification Result */
-                                <div className="text-center py-6">
-                                    {verificationResult.verified ? (
-                                        <>
-                                            <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4 animate-bounce" />
-                                            <h3 className="text-2xl font-bold text-white mb-2">PROOF VERIFIED ✅</h3>
-                                            <p className="text-green-400 font-mono mb-4">
-                                                Confidence: {(verificationResult.confidence * 100).toFixed(1)}%
-                                            </p>
-                                            <div className="bg-green-900/30 rounded-xl p-4 border border-green-500/20 mb-4">
-                                                <p className="text-sm text-green-300">{verificationResult.reason}</p>
-                                            </div>
-                                            <div className="bg-[var(--electric-volt)]/10 rounded-xl p-4 border border-yellow-500/30">
-                                                <p className="text-[var(--electric-volt)] font-bold text-lg">
-                                                    💰 {selectedNeed.reward} ALGO Released!
-                                                </p>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaTimes className="text-red-500 text-6xl mx-auto mb-4" />
-                                            <h3 className="text-2xl font-bold text-white mb-2">PROOF REJECTED ❌</h3>
-                                            <p className="text-red-400 font-mono mb-4">
-                                                Confidence: {(verificationResult.confidence * 100).toFixed(1)}%
-                                            </p>
-                                            <div className="bg-red-900/30 rounded-xl p-4 border border-red-500/20 mb-4">
-                                                <p className="text-sm text-red-300">{verificationResult.reason}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setVerificationResult(null)}
-                                                className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors font-bold"
-                                            >
-                                                Try Again
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
